@@ -282,7 +282,6 @@ BEGIN
 				FROM OPENROWSET(''Microsoft.ACE.OLEDB.16.0'', 
 								''Text;HDR=YES;FMT=Delimited;Database=' + @pathCatalogos + ''', 
 								''SELECT * FROM catalogo.csv'');';
-	
 	EXEC sp_executesql @sql;
 
 	-- Paso 5: Insertar datos en la tabla PRODUCTO
@@ -387,84 +386,82 @@ GO
 CREATE OR ALTER PROCEDURE InsertarVentasRegistradas(@path VARCHAR(255))
 AS
 BEGIN
+
     BEGIN TRY
-		CREATE TABLE #TEMP_VENTAS
-		(
-			id_factura char(11),
-			tipo_de_factura char CHECK(tipo_de_factura IN('A', 'B', 'C')) NOT NULL,
-			ciudad char(9) CHECK(ciudad IN('Yangon', 'Naypyitaw', 'Mandalay')) NOT NULL,
-			tipo_de_cliente char(6) CHECK(tipo_de_cliente IN('Normal', 'Member')) NOT NULL,
-			genero char(6) CHECK(genero IN('Male', 'Female')) NOT NULL, --Male - Female
-			producto varchar(255) NOT NULL,
-			precio_unitario decimal(10,2) NOT NULL,
-			cantidad smallint NOT NULL,--maximo 32767 y minimo -32768
-			fecha char(10) NOT NULL,--10/20/2011
-			hora time(0) NOT NULL,
-			medio_de_pago char(11) CHECK(medio_de_pago IN('Ewallet', 'Cash', 'Credit card')) NOT NULL,--Ewallet - Cash - Credit card
-			empleado int NOT NULL,--257020
-			identificador_de_pago CHAR(23) 
-		)
+		-- Crear tabla temporal
+		CREATE TABLE #TEMP_VENTAS (
+			id_factura CHAR(11),
+			tipo_de_factura CHAR CHECK (tipo_de_factura IN ('A', 'B', 'C')) NOT NULL,
+			ciudad CHAR(9) CHECK (ciudad IN ('Yangon', 'Naypyitaw', 'Mandalay')) NOT NULL,
+			tipo_de_cliente CHAR(6) CHECK (tipo_de_cliente IN ('Normal', 'Member')) NOT NULL,
+			genero CHAR(6) CHECK (genero IN ('Male', 'Female')) NOT NULL,
+			producto VARCHAR(255) NOT NULL,
+			precio_unitario DECIMAL(10, 2) NOT NULL,
+			cantidad SMALLINT NOT NULL, -- max 32767, min -32768
+			fecha CHAR(10) NOT NULL,    -- formato: MM/DD/YYYY
+			hora TIME(0) NOT NULL,
+			medio_de_pago CHAR(11) CHECK (medio_de_pago IN ('Ewallet', 'Cash', 'Credit card')) NOT NULL,
+			empleado INT NOT NULL,
+			identificador_de_pago CHAR(23)
+		);
 
-        DECLARE @sql NVARCHAR(MAX);
+		DECLARE @sql NVARCHAR(MAX);
 
-        SET @sql = N'
-            BULK INSERT #TEMP_VENTAS
-            FROM ''' + @path + '''
-            WITH
-            (
-                FIELDTERMINATOR = '','';  -- Separador de campos, ajústalo si es necesario
-                ROWTERMINATOR = ''\n'',   -- Fin de línea
-                CODEPAGE = ''65001'',     -- UTF-8
-                FIRSTROW = 2              -- Iniciar desde la fila 2
-            ); 
+		-- Comando BULK INSERT para cargar los datos desde un archivo CSV
+		SET @sql = N'
+			BULK INSERT #TEMP_VENTAS
+			FROM ''' + @path + ''' 
+			WITH
+			(
+				FIELDTERMINATOR = '';'',  -- Separador de campos
+				ROWTERMINATOR = ''\n'',   -- Fin de línea
+				CODEPAGE = ''65001'',     -- UTF-8
+				FIRSTROW = 2              -- Iniciar desde la fila 2
+			);
+		';
 
-			UPDATE #TEMP_VENTAS
-			SET PRODUCTO = REPLACE(
+
+		-- Ejecutar el SQL dinámico para el BULK INSERT
+		EXEC sp_executesql @sql;
+
+	END TRY
+	BEGIN CATCH
+		PRINT 'Error: ' + ERROR_MESSAGE();
+	END CATCH
+	-- Actualizar registros en la tabla temporal
+	UPDATE #TEMP_VENTAS
+	SET 
+		producto = REPLACE(
+			REPLACE(
+				REPLACE(
+					REPLACE(
+						REPLACE(
 							REPLACE(
 								REPLACE(
 									REPLACE(
 										REPLACE(
 											REPLACE(
 												REPLACE(
-													REPLACE(
-														REPLACE(
-															REPLACE(
-																REPLACE(PRODUCTO, 
-																	''Ã¡'', ''á''),    
-																	''Ã©'', ''é''),    
-																	''Ã'', ''í''),  
-																	''í-'', ''í''),  
-																	''í³'', ''ó''),
-																	''Ã³'', ''ó''),
-																	''Ãº'', ''ú''),
-																	''íº'', ''ú''),
-																	''Ã±'', ''ñ''),
-																	''í±'', ''ñ''),
-																	''Â'', ''''),
-                                                                    )
-                                                                )
-                                                            )
-                                                        )
-                                                    )
-                                                ),
-                                                IDENTIFICADOR_DE_PAGO = 
-                                                CASE
-                                                    WHEN IDENTIFICADOR_DE_PAGO = ''--'' THEN NULL
-                                                    WHEN IDENTIFICADOR_DE_PAGO LIKE ''''''%''
-                                                        THEN SUBSTRING(IDENTIFICADOR_DE_PAGO, 2, 22)
-                                                    ELSE IDENTIFICADOR_DE_PAGO
-                                                END,
-                                                FECHA = CONVERT(DATE, FECHA, 101); 
-        ';
+													producto,
+													'Ã¡', 'á'
+												), 'Ã©', 'é'
+											), 'Ã­', 'í'
+										), 'í-', 'í'
+									), 'í³', 'ó'
+								), 'Ã³', 'ó'
+							), 'Ãº', 'ú'
+						), 'íº', 'ú'
+					), 'Ã±', 'ñ'
+				), 'í±', 'ñ'
+			), 'Â', ''
+		),
+		identificador_de_pago = CASE
+			WHEN identificador_de_pago = '--' THEN NULL
+			WHEN identificador_de_pago LIKE '''%' THEN SUBSTRING(identificador_de_pago, 2, 22)
+			ELSE identificador_de_pago
+		END,
+		fecha = CONVERT(DATE, fecha, 101); -- Formato de fecha MM/DD/YYYY
 
-        -- Ejecutar el SQL dinámico
-        EXEC sp_executesql @sql;
-
-    END TRY
-    BEGIN CATCH
-        PRINT 'Error: ' + ERROR_MESSAGE();
-    END CATCH
-		
 	INSERT INTO aurora.FACTURA (id, tipo_de_factura)
 	SELECT id_factura, tipo_de_factura
 	FROM #TEMP_VENTAS
@@ -493,11 +490,11 @@ BEGIN
 END;
 GO
 
-DECLARE @pathVentasRegistradas VARCHAR(255) = 'C:\Users\User\Desktop\Informacion_complementaria.xlsx';
-DECLARE @pathInformacionComplementaria VARCHAR(255) = 'C:\Users\User\Desktop\Informacion_complementaria.xlsx';
-DECLARE @pathCatalogo VARCHAR(255) = 'C:\Users\User\Desktop\Informacion_complementaria.xlsx';
-DECLARE @pathProductosElectronicos VARCHAR(255) = 'C:\Users\User\Desktop\Electronic accessories.xlsx';
-DECLARE @pathProductosImportados VARCHAR(255) = 'C:\Users\User\Desktop\Informacion_complementaria.xlsx'
+DECLARE @pathVentasRegistradas VARCHAR(255) = 'C:\Users\User\Desktop\ddbba\Ventas_registradas.csv';
+DECLARE @pathInformacionComplementaria VARCHAR(255) = 'C:\Users\User\Desktop\ddbba\Informacion_complementaria.xlsx';
+DECLARE @pathCatalogo VARCHAR(255) = 'C:\Users\User\Desktop\ddbba';
+DECLARE @pathProductosElectronicos VARCHAR(255) = 'C:\Users\User\Desktop\ddbba\Electronic accessories.xlsx';
+DECLARE @pathProductosImportados VARCHAR(255) = 'C:\Users\User\Desktop\ddbba\Productos_importados.xlsx'
 
 EXEC InsertarSucursales @pathInformacionComplementaria;
 EXEC InsertarEmpleados @pathInformacionComplementaria;

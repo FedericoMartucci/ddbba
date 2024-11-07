@@ -94,7 +94,7 @@ GO
 
 -- Ejemplo de uso
 EXEC GenerarInformeXMLFacturacionPorDiaSemana 
-    @rutaBase = 'C:\Users\User\Desktop\reportes', 
+    @rutaBase = 'C:\Users\User\Desktop\ddbba\reportes', 
     @nombreInforme = 'FacturacionPorDiaSemana', 
     @mes = 3, 
     @año = 2019;
@@ -190,7 +190,7 @@ GO
 
 -- Ejemplo de uso
 EXEC GenerarInformeXMLFacturacionPorTurnoTrimestral 
-    @rutaBase = 'C:\Users\User\Desktop\reportes', 
+    @rutaBase = 'C:\Users\User\Desktop\ddbba\reportes', 
     @nombreInforme = 'FacturacionPorTurnoTrimestral', 
     @año = 2019, 
     @trimestre = 1;
@@ -282,7 +282,7 @@ GO
 
 -- Ejemplo de uso
 EXEC GenerarInformeXMLProductosVendidosPorRango 
-    @rutaBase = 'C:\Users\User\Desktop\reportes', 
+    @rutaBase = 'C:\Users\User\Desktop\ddbba\reportes', 
     @nombreInforme = 'ProductosVendidosPorRango',
     @fechaInicio = '2019-01-01', 
     @fechaFin = '2019-03-31';
@@ -375,7 +375,7 @@ GO
 
 -- Ejemplo de uso
 EXEC GenerarInformeXMLProductosVendidosPorSucursal 
-    @rutaBase = 'C:\Users\User\Desktop\reportes', 
+    @rutaBase = 'C:\Users\User\Desktop\ddbba\reportes', 
     @nombreInforme = 'ProductosVendidos', 
     @fechaInicio = '2019-01-01', 
     @fechaFin = '2019-03-31';
@@ -463,7 +463,7 @@ GO
 
 -- Ejemplo de uso
 EXEC GenerarInformeXMLTop5ProductosPorSemana 
-    @rutaBase = 'C:\Users\User\Desktop\reportes', 
+    @rutaBase = 'C:\Users\User\Desktop\ddbba\reportes', 
     @nombreInforme = 'Top5ProductosPorSemana',
     @mes = 3, 
     @año = 2019;
@@ -552,7 +552,7 @@ GO
 
 -- Ejemplo de uso
 EXEC GenerarInformeXMLProductosMenosVendidos 
-    @rutaBase = 'C:\Users\User\Desktop\reportes', 
+    @rutaBase = 'C:\Users\User\Desktop\ddbba\reportes', 
     @nombreInforme = 'ProductosMenosVendidos';
 GO
 
@@ -637,7 +637,7 @@ GO
 
 -- Ejemplo de uso
 EXEC GenerarInformeXMLVentasPorFechaSucursal 
-    @rutaBase = 'C:\Users\User\Desktop\reportes',
+    @rutaBase = 'C:\Users\User\Desktop\ddbba\reportes',
     @nombreInforme = 'VentasPorFechaSucursal',
     @fecha = '2019-03-10', 
     @idSucursal = 2;
