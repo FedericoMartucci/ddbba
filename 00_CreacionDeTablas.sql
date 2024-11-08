@@ -198,5 +198,4 @@ BEGIN
 END;
 GO
 
-use clase_2
 
