@@ -27,14 +27,14 @@ BEGIN
     );
 END;
 
-
-/*IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'aurora.TIPO') AND type in (N'U'))
+--CREAMOS LA TABLA 'TIPO'
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'aurora.TIPO') AND type in (N'U'))
 BEGIN
     CREATE TABLE aurora.TIPO (
         id INT CONSTRAINT PK_TIPO_ID PRIMARY KEY,
-        nombre VARCHAR(255) NOT NULL
+        genero CHAR(20) NOT NULL
     );
-END;*/
+END;
 
 
 --CREAMOS LA TABLA 'CATEGORIA'
@@ -47,7 +47,8 @@ BEGIN
 END;
 
 
-/*IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'aurora.CLIENTE') AND type in (N'U'))
+--CREAMOS LA TABLA 'CLIENTE'
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'aurora.CLIENTE') AND type in (N'U'))
 BEGIN
     CREATE TABLE aurora.CLIENTE (
         id INT CONSTRAINT PK_CLIENTE_ID PRIMARY KEY,
@@ -55,7 +56,7 @@ BEGIN
         id_tipo INT,
         CONSTRAINT FK_ID_TIPO_CLIENTE_TIPO FOREIGN KEY (id_tipo) REFERENCES aurora.TIPO(id)
     );
-END;*/
+END;
 
 
 --CREAMOS LA TABLA 'SUCURSAL'
@@ -111,6 +112,8 @@ BEGIN
         precio_unidad DECIMAL(10, 2),
         nombre_producto VARCHAR(100) NOT NULL,
 		id_categoria INT,
+		fecha_creacion DATE NOT NULL DEFAULT GETDATE(),
+		fecha_eliminacion DATE,
 		CONSTRAINT FK_ID_CATEGORIA_PRODUCTO_CATEGORIA FOREIGN KEY (id_categoria) REFERENCES aurora.CATEGORIA(id)
     );
 END;
@@ -120,8 +123,21 @@ IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'aurora.FA
 BEGIN
     CREATE TABLE aurora.FACTURA (
         id CHAR(11) CHECK (id LIKE '[0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9][0-9][0-9]') CONSTRAINT PK_FACTURA_ID PRIMARY KEY,
-        tipo_de_factura CHAR CHECK(tipo_de_factura IN('A', 'B', 'C')) NOT NULL
-    );
+        tipo_de_factura CHAR CHECK(tipo_de_factura IN('A', 'B', 'C')) NOT NULL,
+		estado BIT NOT NULL DEFAULT 0
+	);
+END;
+
+--CREAMOS LA TABLA 'NOTA_CREDITO'
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'aurora.FACTURA') AND type in (N'U'))
+BEGIN
+    CREATE TABLE aurora.NOTA_CREDITO (
+		id_producto INT IDENTITY(1, 1) CONSTRAINT PK_PRODUCTO_ID PRIMARY KEY,        
+		monto DECIMAL (10, 2),
+		id_factura CHAR(11) CHECK (id_factura LIKE '[0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9][0-9][0-9]'),
+		CONSTRAINT FK_ID_FACTURA FOREIGN KEY (id_factura) REFERENCES aurora.FACTURA(id)
+
+	);
 END;
 
 --CREAMOS LA TABLA 'MEDIO DE PAGO'
@@ -141,8 +157,6 @@ BEGIN
         id INT IDENTITY(1, 1) CONSTRAINT PK_VENTA_ID PRIMARY KEY,
         id_factura CHAR(11) CHECK (id_factura LIKE '[0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9][0-9][0-9]'),
         id_sucursal INT,
-		tipo_de_cliente CHAR(6) CHECK(tipo_de_cliente IN('Normal', 'Member')) NOT NULL,
-		genero VARCHAR(6) CHECK(genero IN('Male', 'Female')) NOT NULL, --Male - Female
         id_producto INT,
         cantidad SMALLINT  NOT NULL, --maximo 32767 y minimo -32768
         fecha DATE NOT NULL,
