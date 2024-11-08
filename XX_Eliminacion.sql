@@ -66,6 +66,16 @@ BEGIN
 END;
 GO
 
+-- Store Procedure para eliminación física en CARGO
+CREATE PROCEDURE aurora.EliminarNotaCreditoFisico
+    @id INT
+AS
+BEGIN
+    DELETE FROM aurora.NOTA_CREDITO
+    WHERE id = @id;
+END;
+GO
+
 -- Store Procedure para eliminación física en FACTURA
 CREATE PROCEDURE aurora.EliminarFacturaFisico
     @id_factura CHAR(11)
