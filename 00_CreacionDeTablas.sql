@@ -24,7 +24,7 @@ IF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = 'productos')
 				==============================================================
 */
 --CREAMOS LA TABLA 'CARGO' SI NO EXISTE PREVIAMENTE, LA MISMA METODOLOGIA SE APLICA AL RESTO DE LAS TABLAS
-IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'aurora.CARGO') AND type in (N'U'))
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'seguridad.CARGO') AND type in (N'U'))
 BEGIN
     CREATE TABLE seguridad.CARGO (
         id INT IDENTITY(1, 1) CONSTRAINT PK_CARGO_ID PRIMARY KEY,
@@ -34,18 +34,17 @@ END;
 
 
 --CREAMOS LA TABLA 'TIPO' que tendrá los distintos tipos de cliente
-IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'aurora.TIPO') AND type in (N'U'))
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'seguridad.TIPO') AND type in (N'U'))
 BEGIN
     CREATE TABLE seguridad.TIPO (
         id INT IDENTITY(1, 1) CONSTRAINT PK_TIPO_ID PRIMARY KEY,
         nombre VARCHAR(50) NOT NULL
     );
 END;
-END;
 
 
 --CREAMOS LA TABLA 'CATEGORIA'
-IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'aurora.CATEGORIA') AND type in (N'U'))
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'seguridad.CATEGORIA') AND type in (N'U'))
 BEGIN
     CREATE TABLE seguridad.CATEGORIA (
         id INT IDENTITY (1, 1) CONSTRAINT PK_CATEGORIA_ID PRIMARY KEY,
@@ -55,9 +54,7 @@ END;
 
 
 --CREAMOS LA TABLA 'CLIENTE'
-IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'aurora.CLIENTE') AND type in (N'U'))
---CREAMOS LA TABLA 'CLIENTE'
-IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'aurora.CLIENTE') AND type in (N'U'))
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'seguridad.CLIENTE') AND type in (N'U'))
 BEGIN
     CREATE TABLE seguridad.CLIENTE (
         id INT IDENTITY(1, 1) CONSTRAINT PK_CLIENTE_ID PRIMARY KEY,
@@ -66,11 +63,10 @@ BEGIN
         CONSTRAINT FK_ID_TIPO_CLIENTE_TIPO FOREIGN KEY (id_tipo) REFERENCES seguridad.TIPO(id)
     );
 END;
-END;
 
 
 --CREAMOS LA TABLA 'SUCURSAL'
-IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'aurora.SUCURSAL') AND type in (N'U'))
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'seguridad.SUCURSAL') AND type in (N'U'))
 BEGIN
     CREATE TABLE seguridad.SUCURSAL (
         id INT IDENTITY(1, 1) CONSTRAINT PK_SUCURSAL_ID PRIMARY KEY,
@@ -85,7 +81,7 @@ END;
 
 
 --CREAMOS LA TABLA 'TELEFONO'
-IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'aurora.TELEFONO') AND type in (N'U'))
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'seguridad.TELEFONO') AND type in (N'U'))
 BEGIN
     CREATE TABLE seguridad.TELEFONO (
         id_sucursal INT CONSTRAINT PK_TELEFONO_IDSUCURSAL PRIMARY KEY,
@@ -96,7 +92,7 @@ END;
 
 
 --CREAMOS LA TABLA 'EMPLEADO'
-IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'aurora.EMPLEADO') AND type in (N'U'))
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'seguridad.EMPLEADO') AND type in (N'U'))
 BEGIN
     CREATE TABLE seguridad.EMPLEADO (
         legajo INT CONSTRAINT PK_EMPLEADO_LEGAJO PRIMARY KEY,
@@ -121,7 +117,7 @@ END;
 				=============================================================
 */
 --CREAMOS LA TABLA 'PRODUCTO'
-IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'aurora.PRODUCTO') AND type in (N'U'))
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'productos.PRODUCTO') AND type in (N'U'))
 BEGIN
     CREATE TABLE productos.PRODUCTO (
         id_producto INT IDENTITY(1, 1) CONSTRAINT PK_PRODUCTO_ID PRIMARY KEY,
@@ -136,7 +132,7 @@ END;
 
 
 --CREAMOS LA TABLA 'IMPORTADO'
-IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'aurora.IMPORTADO') AND type in (N'U'))
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'productos.IMPORTADO') AND type in (N'U'))
 BEGIN
     CREATE TABLE productos.IMPORTADO (
         id_producto INT CONSTRAINT PK_IMPORTADO_ID PRIMARY KEY,
@@ -148,7 +144,7 @@ END;
 
 
 --CREAMOS LA TABLA 'VARIOS'
-IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'aurora.VARIOS') AND type in (N'U'))
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'productos.VARIOS') AND type in (N'U'))
 BEGIN
     CREATE TABLE productos.VARIOS (
         id_producto INT CONSTRAINT PK_VARIOS_ID PRIMARY KEY,
@@ -161,7 +157,7 @@ END;
 
 
 --CREAMOS LA TABLA 'ELECTRONICO'
-IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'aurora.ELECTRONICO') AND type in (N'U'))
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'productos.ELECTRONICO') AND type in (N'U'))
 BEGIN
     CREATE TABLE productos.ELECTRONICO (
         id_producto INT CONSTRAINT PK_ELECTRONICO_ID PRIMARY KEY,
@@ -177,7 +173,7 @@ GO
 				===============================================================
 */
 --CREAMOS LA TABLA 'FACTURA'
-IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'aurora.FACTURA') AND type in (N'U'))
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'transacciones.FACTURA') AND type in (N'U'))
 BEGIN
     CREATE TABLE transacciones.FACTURA (
         id CHAR(11) CHECK (id LIKE '[0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9][0-9][0-9]') CONSTRAINT PK_FACTURA_ID PRIMARY KEY,
@@ -187,20 +183,20 @@ BEGIN
 END;
 
 --CREAMOS LA TABLA 'NOTA_CREDITO'
-IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'aurora.FACTURA') AND type in (N'U'))
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'transacciones.FACTURA') AND type in (N'U'))
 BEGIN
-    CREATE TABLE aurora.NOTA_CREDITO (
+    CREATE TABLE transacciones.NOTA_CREDITO (
 		id INT IDENTITY(1, 1) CONSTRAINT PK_NOTA_CREDITO_ID PRIMARY KEY,        
 		monto DECIMAL (10, 2),
 		id_factura CHAR(11) CHECK (id_factura LIKE '[0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9][0-9][0-9]'),
-		CONSTRAINT FK_ID_FACTURA FOREIGN KEY (id_factura) REFERENCES aurora.FACTURA(id)
+		CONSTRAINT FK_ID_FACTURA FOREIGN KEY (id_factura) REFERENCES transacciones.FACTURA(id)
 
 	);
 END;
 
 
 --CREAMOS LA TABLA 'MEDIO DE PAGO'
-IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'aurora.MEDIO_DE_PAGO') AND type in (N'U'))
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'transacciones.MEDIO_DE_PAGO') AND type in (N'U'))
 BEGIN
     CREATE TABLE transacciones.MEDIO_DE_PAGO (
         id INT IDENTITY(1, 1) CONSTRAINT PK_MEDIO_DE_PAGO_ID PRIMARY KEY,
@@ -211,7 +207,7 @@ END;
 
 
 --CREAMOS LA TABLA 'VENTA'
-IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'aurora.VENTA') AND type in (N'U'))
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'transacciones.VENTA') AND type in (N'U'))
 BEGIN
     CREATE TABLE transacciones.VENTA (
         id INT IDENTITY(1, 1) CONSTRAINT PK_VENTA_ID PRIMARY KEY,
@@ -239,4 +235,3 @@ BEGIN
 END;
 
 use master
-
