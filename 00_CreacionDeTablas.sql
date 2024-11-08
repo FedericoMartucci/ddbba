@@ -28,13 +28,13 @@ BEGIN
 END;
 
 
-/*IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'aurora.TIPO') AND type in (N'U'))
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'aurora.TIPO') AND type in (N'U'))
 BEGIN
     CREATE TABLE aurora.TIPO (
         id INT CONSTRAINT PK_TIPO_ID PRIMARY KEY,
         nombre VARCHAR(255) NOT NULL
     );
-END;*/
+END;
 
 
 --CREAMOS LA TABLA 'CATEGORIA'
@@ -47,7 +47,7 @@ BEGIN
 END;
 
 
-/*IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'aurora.CLIENTE') AND type in (N'U'))
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'aurora.CLIENTE') AND type in (N'U'))
 BEGIN
     CREATE TABLE aurora.CLIENTE (
         id INT CONSTRAINT PK_CLIENTE_ID PRIMARY KEY,
@@ -55,7 +55,7 @@ BEGIN
         id_tipo INT,
         CONSTRAINT FK_ID_TIPO_CLIENTE_TIPO FOREIGN KEY (id_tipo) REFERENCES aurora.TIPO(id)
     );
-END;*/
+END;
 
 
 --CREAMOS LA TABLA 'SUCURSAL'
