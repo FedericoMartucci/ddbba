@@ -236,5 +236,3 @@ BEGIN
         CONSTRAINT FK_ID_FACTURA_VENTA_FACTURA FOREIGN KEY (id_factura) REFERENCES transacciones.FACTURA(id)
     );
 END;
-
-use master
