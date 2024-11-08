@@ -64,16 +64,6 @@ BEGIN
       AND aurora.codigo_postal = SUBSTRING(temp.direccion, CHARINDEX(', B', temp.direccion) + 2, 5)
       AND aurora.provincia = SUBSTRING(temp.direccion, CHARINDEX('Provincia', temp.direccion) + 13, LEN(temp.direccion))
 	);
-	
-    /*INSERT INTO seguridad.SUCURSAL (horario, ciudad, reemplazar_por, direccion, codigo_postal, provincia)
-    SELECT DISTINCT 
-        horario,
-        ciudad,
-        reemplazar_por,
-        LTRIM(RTRIM(REPLACE(LEFT(direccion, CHARINDEX(',', direccion) - 1), ' ', ''))) AS direccion,
-        SUBSTRING(direccion, CHARINDEX(', B', direccion) + 2, 5) AS codigo_postal,
-        SUBSTRING(direccion, CHARINDEX('Provincia', direccion) + 13, LEN(direccion)) AS provincia
-    FROM #TEMP_SUCURSAL;*/
 
     INSERT INTO seguridad.TELEFONO (id_sucursal, telefono)
 	SELECT DISTINCT s.id, t.telefono
@@ -85,11 +75,6 @@ BEGIN
     WHERE tel.id_sucursal = s.id
       AND tel.telefono = t.telefono
 	);
-	
-	/*INSERT INTO seguridad.TELEFONO (id_sucursal, telefono)
-    SELECT DISTINCT s.id, t.telefono
-    FROM seguridad.SUCURSAL s
-    JOIN #TEMP_SUCURSAL t ON s.reemplazar_por = t.reemplazar_por;*/
 
     DROP TABLE #TEMP_SUCURSAL;
 END;
@@ -139,12 +124,6 @@ BEGIN
       FROM seguridad.CARGO c
       WHERE c.nombre = cargo
 	);
-	
-	/*INSERT INTO seguridad.CARGO (nombre)
-    SELECT DISTINCT cargo
-    FROM #TEMP_EMPLEADO
-    WHERE cargo IS NOT NULL AND cargo NOT IN (SELECT nombre FROM seguridad.CARGO);*/
-
     
 	INSERT INTO seguridad.EMPLEADO (legajo, nombre, apellido, dni, direccion, email_empresa, email_personal, CUIL, id_cargo, id_sucursal, turno)
 	SELECT DISTINCT
@@ -168,24 +147,6 @@ BEGIN
     FROM seguridad.EMPLEADO emp
     WHERE emp.legajo = e.legajo
 	);
-	
-	/*INSERT INTO seguridad.EMPLEADO (legajo, nombre, apellido, dni, direccion, email_empresa, email_personal, CUIL, id_cargo, id_sucursal, turno)
-    SELECT DISTINCT
-        e.legajo,
-        e.nombre,
-        e.apellido,
-        e.dni,
-        e.direccion,
-        e.email_empresa,
-        e.email_personal,
-        e.CUIL,
-        c.id AS id_cargo,
-        s.id AS id_sucursal,
-        e.turno
-    FROM 
-        #TEMP_EMPLEADO e
-        LEFT JOIN seguridad.CARGO c ON e.cargo = c.nombre
-        LEFT JOIN seguridad.SUCURSAL s ON e.sucursal = s.reemplazar_por;*/
 
     DROP TABLE #TEMP_EMPLEADO;
 END;
@@ -324,9 +285,6 @@ BEGIN
 		AND p.precio_unidad = precio_unidad_en_dolares * @ret
 		AND p.id_categoria = @id_categoria
 	);
-    /*INSERT INTO productos.PRODUCTO (nombre_producto, precio_unidad, id_categoria)
-    SELECT DISTINCT nombre_producto, precio_unidad_en_dolares * @ret, @id_categoria
-    FROM #TEMP_ELECTRONICOS;*/
 
 	-- Insertar en la tabla ELECTRONICO utilizando los IDs recién generados en PRODUCTO
 	--Validamos que no insertemos duplicados
@@ -343,11 +301,6 @@ BEGIN
 		WHERE e.id_producto = p.id_producto
 		AND e.precio_unidad_en_dolares = t.precio_unidad_en_dolares
 	);
-    /*INSERT INTO productos.ELECTRONICO (id_producto, precio_unidad_en_dolares)
-    SELECT DISTINCT p.id_producto, t.precio_unidad_en_dolares
-    FROM productos.PRODUCTO p
-    JOIN #TEMP_ELECTRONICOS t ON p.nombre_producto = t.nombre_producto
-    WHERE p.precio_unidad = t.precio_unidad_en_dolares * @ret;*/
 
 	-- Limpiar tabla temporal
     DROP TABLE #TEMP_ELECTRONICOS;
@@ -393,10 +346,6 @@ BEGIN
 		FROM seguridad.CATEGORIA c
 		WHERE c.descripcion = linea_producto
 	);
-	/*INSERT INTO seguridad.CATEGORIA (descripcion)
-	SELECT DISTINCT linea_producto
-	FROM #TEMP_CATEGORIAS
-	WHERE linea_producto NOT IN (SELECT descripcion FROM seguridad.CATEGORIA);*/
 	
 	CREATE TABLE #TEMP_CATALOGO (
 		id INT,
@@ -433,15 +382,6 @@ BEGIN
 		AND p.precio_unidad = t.price
 		AND p.id_categoria = c.id
 );
-	/*INSERT INTO productos.PRODUCTO (nombre_producto, precio_unidad, id_categoria)
-	SELECT DISTINCT
-		t.name, 
-		t.price, 
-		c.id AS id_categoria
-	FROM 
-		#TEMP_CATALOGO AS t
-		JOIN #TEMP_CATEGORIAS AS ex ON t.category = ex.producto
-		JOIN seguridad.CATEGORIA AS c ON ex.linea_producto = c.descripcion;*/
 	
 	-- Paso 6: Insertar datos en la tabla VARIOS
 	INSERT INTO productos.VARIOS (id_producto, fecha, hora, unidad_de_referencia)
@@ -463,16 +403,6 @@ BEGIN
 	      AND v.hora = CAST(t.date AS TIME(0))
 	      AND v.unidad_de_referencia = t.reference_unit
 	);
-	/*INSERT INTO productos.VARIOS (id_producto, fecha, hora, unidad_de_referencia)
-	SELECT DISTINCT
-		p.id_producto,
-		CAST(t.date AS DATE),
-		CAST(t.date AS TIME(0)),
-		t.reference_unit
-	FROM 
-		#TEMP_CATALOGO AS t
-		JOIN productos.PRODUCTO AS p ON t.name = p.nombre_producto
-		AND t.price = p.precio_unidad;*/
 	
 	-- Limpiar tablas temporales
 	DROP TABLE #TEMP_CATALOGO;
@@ -523,10 +453,6 @@ BEGIN
 	    FROM seguridad.CATEGORIA c
 	    WHERE c.descripcion = t.Categoria
 	);
-	/*INSERT INTO seguridad.CATEGORIA (descripcion)
-	SELECT DISTINCT Categoria
-	FROM #TEMPORAL_PRODUCTOS
-	WHERE Categoria NOT IN (SELECT descripcion FROM seguridad.CATEGORIA);*/
 
 	-- Paso 4: Insertar productos
 	-- Primero, insertamos los productos y luego los buscamos para llenar IMPORTADO
@@ -547,12 +473,6 @@ BEGIN
 	      AND p.precio_unidad = t.PrecioUnidad
 	      AND p.id_categoria = (SELECT id FROM seguridad.CATEGORIA WHERE descripcion = t.Categoria)
 	);
-	/*INSERT INTO productos.PRODUCTO (nombre_producto, precio_unidad, id_categoria)
-	SELECT DISTINCT
-		NombreProducto, 
-		PrecioUnidad, 
-		(SELECT id FROM seguridad.CATEGORIA WHERE descripcion = t.Categoria)
-	FROM #TEMPORAL_PRODUCTOS AS t;*/
 	
 	-- Paso 5: Insertar en IMPORTADO usando los IDs de los productos insertados
 	INSERT INTO productos.IMPORTADO (id_producto, proveedor, cantidad_por_unidad)
@@ -572,14 +492,6 @@ BEGIN
 	      AND i.proveedor = t.Proveedor
 	      AND i.cantidad_por_unidad = t.CantidadPorUnidad
 	);
-	/*INSERT INTO productos.IMPORTADO (id_producto, proveedor, cantidad_por_unidad)
-	SELECT DISTINCT
-		p.id_producto,  -- ID del producto de la tabla PRODUCTO
-		t.Proveedor, 
-		t.CantidadPorUnidad
-	FROM 
-		#TEMPORAL_PRODUCTOS AS t
-	JOIN productos.PRODUCTO AS p ON p.nombre_producto = t.NombreProducto AND p.precio_unidad = t.PrecioUnidad;*/ -- Busca el producto por nombre y precio
 	
 	-- Paso 6: Limpiar las tablas temporales
 	DROP TABLE #TEMPORAL_PRODUCTOS;
@@ -705,9 +617,6 @@ BEGIN
 	    WHERE f.id = #TEMP_VENTAS.id_factura
 	      AND f.tipo_de_factura = #TEMP_VENTAS.tipo_de_factura
 	);
-	/*INSERT INTO transacciones.FACTURA (id, tipo_de_factura)
-	SELECT id_factura, tipo_de_factura
-	FROM #TEMP_VENTAS*/
 
 	INSERT INTO transacciones.VENTA (id_factura, id_sucursal, id_producto, cantidad, fecha, hora, id_medio_de_pago, legajo, identificador_de_pago)
 	SELECT DISTINCT
@@ -739,26 +648,6 @@ BEGIN
 	      AND v.legajo = e.legajo
 	      AND v.identificador_de_pago = t.identificador_de_pago
 	);
-	/*INSERT INTO transacciones.VENTA (id_factura, id_sucursal, tipo_de_cliente, genero, id_producto, cantidad, fecha, hora, id_medio_de_pago, legajo, identificador_de_pago)
-	SELECT DISTINCT
-		f.id,
-		s.id,
-		t.tipo_de_cliente,
-		t.genero,
-		p.id_producto,
-		t.cantidad,
-		t.fecha,
-		t.hora,
-		m.id,
-		e.legajo,
-		t.identificador_de_pago
-	FROM #TEMP_VENTAS t
-	INNER JOIN transacciones.FACTURA f ON f.id = t.id_factura
-	INNER JOIN seguridad.SUCURSAL s ON s.ciudad = t.ciudad
-	INNER JOIN productos.PRODUCTO p ON p.nombre_producto = t.producto AND p.precio_unidad = t.precio_unitario
-	INNER JOIN transacciones.MEDIO_DE_PAGO m ON m.descripcion_ingles = t.medio_de_pago
-	INNER JOIN seguridad.EMPLEADO e ON e.legajo = t.empleado*/
-
 	DROP TABLE #TEMP_VENTAS
 END;
 GO
