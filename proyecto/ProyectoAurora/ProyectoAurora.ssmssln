@@ -1,0 +1,22 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# SQL Server Management Studio Solution File, Format Version 20.00
+VisualStudioVersion = 15.0.28307.421
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{4F2E2C19-372F-40D8-9FA7-9D2138C6997A}") = "ProyectoAurora", "ProyectoAurora\ProyectoAurora.ssmssqlproj", "{678E542E-326B-4D7C-8A4E-3181A307FC78}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Default|Default = Default|Default
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{678E542E-326B-4D7C-8A4E-3181A307FC78}.Default|Default.ActiveCfg = Default
+		{F5C0DAE2-AF86-49D0-BB3F-3D6249223CCF}.Default|Default.ActiveCfg = Default
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {E87BB409-8698-442C-B24C-EBFA27E8B375}
+	EndGlobalSection
+EndGlobal
