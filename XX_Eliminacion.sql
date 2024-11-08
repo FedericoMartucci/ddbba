@@ -1,18 +1,27 @@
--- Store Procedure para eliminaci髇 l骻ica en CATEGORIA (con borrado en cascada en PRODUCTO)
-CREATE PROCEDURE aurora.EliminarCategoriaLogico
+--CREAMOS LOS PROCEDURE NECESARIOS PARA LEVANTAR LOS ARCHIVOS QUE RECIBIMOS
+USE Com5600G08
+GO
+
+--CREAMOS SCHEMA PARA INSERCIONES
+IF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = 'borrado')
+    EXEC('CREATE SCHEMA borrado');
+GO
+
+-- Store Procedure para eliminaci贸n l贸gica en CATEGORIA (con borrado en cascada en PRODUCTO)
+CREATE OR ALTER PROCEDURE borrado.EliminarCategoriaLogico
     @id_categoria INT
 AS
 BEGIN
     BEGIN TRANSACTION;
 
     BEGIN TRY
-        -- Borrado l骻ico en la tabla 'CATEGORIA'
-        UPDATE aurora.CATEGORIA
+        -- Borrado l贸gico en la tabla 'CATEGORIA'
+        UPDATE seguridad.CATEGORIA
         SET esValido = 0
         WHERE id = @id_categoria;
 
-        -- Borrado l骻ico en cascada en la tabla 'PRODUCTO'
-        UPDATE aurora.PRODUCTO
+        -- Borrado l贸gico en cascada en la tabla 'PRODUCTO'
+        UPDATE productos.PRODUCTO
         SET esValido = 0
         WHERE id_categoria = @id_categoria;
 
@@ -25,128 +34,126 @@ BEGIN
 END;
 GO
 
--- Store Procedure para eliminaci髇 f韘ica en CARGO
-CREATE PROCEDURE aurora.EliminarCargoFisico
+-- Store Procedure para eliminaci贸n f铆sica en CARGO
+CREATE OR ALTER PROCEDURE borrado.EliminarCargoFisico
     @id_cargo INT
 AS
 BEGIN
-    DELETE FROM aurora.CARGO
+    DELETE FROM seguridad.CARGO
     WHERE id = @id_cargo;
 END;
 GO
 
--- Store Procedure para eliminaci髇 f韘ica en SUCURSAL
-CREATE PROCEDURE aurora.EliminarSucursalFisico
+-- Store Procedure para eliminaci贸n f铆sica en SUCURSAL
+CREATE OR ALTER PROCEDURE borrado.EliminarSucursalFisico
     @id_sucursal INT
 AS
 BEGIN
-    DELETE FROM aurora.SUCURSAL
+    DELETE FROM seguridad.SUCURSAL
     WHERE id = @id_sucursal;
 END;
 GO
 
--- Store Procedure para eliminaci髇 f韘ica en TELEFONO
-CREATE PROCEDURE aurora.EliminarTelefonoFisico
+-- Store Procedure para eliminaci贸n f铆sica en TELEFONO
+CREATE OR ALTER PROCEDURE borrado.EliminarTelefonoFisico
     @id_sucursal INT
 AS
 BEGIN
-    DELETE FROM aurora.TELEFONO
+    DELETE FROM seguridad.TELEFONO
     WHERE id_sucursal = @id_sucursal;
 END;
 GO
 
--- Store Procedure para eliminaci髇 l骻ica en EMPLEADO
-CREATE PROCEDURE aurora.EliminarEmpleadoLogico
+-- Store Procedure para eliminaci贸n l贸gica en EMPLEADO
+CREATE OR ALTER PROCEDURE borrado.EliminarEmpleadoLogico
     @legajo INT
 AS
 BEGIN
-    UPDATE aurora.EMPLEADO
+    UPDATE seguridad.EMPLEADO
     SET esValido = 0
     WHERE legajo = @legajo;
 END;
 GO
 
--- Store Procedure para eliminaci髇 f韘ica en CARGO
-CREATE PROCEDURE aurora.EliminarNotaCreditoFisico
+-- Store Procedure para eliminaci贸n f铆sica en CARGO
+CREATE OR ALTER PROCEDURE borrado.EliminarNotaCreditoFisico
     @id INT
 AS
 BEGIN
-    DELETE FROM aurora.NOTA_CREDITO
+    DELETE FROM transacciones.NOTA_CREDITO
     WHERE id = @id;
 END;
 GO
 
--- Store Procedure para eliminaci髇 f韘ica en FACTURA
-CREATE PROCEDURE aurora.EliminarFacturaFisico
+-- Store Procedure para eliminaci贸n f铆sica en FACTURA
+CREATE OR ALTER PROCEDURE borrado.EliminarFacturaFisico
     @id_factura CHAR(11)
 AS
 BEGIN
-    DELETE FROM aurora.FACTURA
+    DELETE FROM transacciones.FACTURA
     WHERE id = @id_factura;
 END;
 GO
 
--- Store Procedure para eliminaci髇 f韘ica en MEDIO_DE_PAGO
-CREATE PROCEDURE aurora.EliminarMedioDePagoFisico
+-- Store Procedure para eliminaci贸n f铆sica en MEDIO_DE_PAGO
+CREATE OR ALTER PROCEDURE borrado.EliminarMedioDePagoFisico
     @id_medio INT
 AS
 BEGIN
-    DELETE FROM aurora.MEDIO_DE_PAGO
+    DELETE FROM transacciones.MEDIO_DE_PAGO
     WHERE id = @id_medio;
 END;
 GO
 
--- Store Procedure para eliminaci髇 f韘ica en VENTA
-CREATE PROCEDURE aurora.EliminarVentaFisico
+-- Store Procedure para eliminaci贸n f铆sica en VENTA
+CREATE OR ALTER PROCEDURE borrado.EliminarVentaFisico
     @id_venta INT
 AS
 BEGIN
-    DELETE FROM aurora.VENTA
+    DELETE FROM transacciones.VENTA
     WHERE id = @id_venta;
 END;
 GO
 
--- Store Procedure para eliminaci髇 f韘ica en IMPORTADO
-CREATE PROCEDURE aurora.EliminarImportadoFisico
+-- Store Procedure para eliminaci贸n f铆sica en IMPORTADO
+CREATE OR ALTER PROCEDURE borrado.EliminarImportadoFisico
     @id_producto INT
 AS
 BEGIN
-    DELETE FROM aurora.IMPORTADO
+    DELETE FROM productos.IMPORTADO
     WHERE id_producto = @id_producto;
 END;
 GO
 
--- Store Procedure para eliminaci髇 f韘ica en VARIOS
-CREATE PROCEDURE aurora.EliminarVariosFisico
+-- Store Procedure para eliminaci贸n f铆sica en VARIOS
+CREATE OR ALTER PROCEDURE borrado.EliminarVariosFisico
     @id_producto INT
 AS
 BEGIN
-    DELETE FROM aurora.VARIOS
+    DELETE FROM productos.VARIOS
     WHERE id_producto = @id_producto;
 END;
 GO
 
--- Store Procedure para eliminaci髇 f韘ica en ELECTRONICO
-CREATE PROCEDURE aurora.EliminarElectronicoFisico
+-- Store Procedure para eliminaci贸n f铆sica en ELECTRONICO
+CREATE OR ALTER PROCEDURE borrado.EliminarElectronicoFisico
     @id_producto INT
 AS
 BEGIN
-    DELETE FROM aurora.ELECTRONICO
+    DELETE FROM productos.ELECTRONICO
     WHERE id_producto = @id_producto;
 END;
 GO
 
--- Store Procedure para eliminaci髇 l骻ica en PRODUCTO
-CREATE PROCEDURE aurora.EliminarProductoLogico
+-- Store Procedure para eliminaci贸n l贸gica en PRODUCTO
+CREATE OR ALTER PROCEDURE borrado.EliminarProductoLogico
     @id_producto INT
 AS
 BEGIN
-    UPDATE aurora.PRODUCTO
+    UPDATE productos.PRODUCTO
     SET esValido = 0
     WHERE id_producto = @id_producto;
 END;
 GO
-
- SP_EXECUTESQL
 
 

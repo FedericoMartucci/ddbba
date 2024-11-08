@@ -1,68 +1,56 @@
 --CARGAMOS TODOS LOS DATOS DE LOS ARCHIVOS Y MOSTRAMOS
-
 USE Com5600G08
 
-DECLARE @pathVentasRegistradas VARCHAR(255) = 'C:\importar\';
-DECLARE @pathInformacionComplementaria VARCHAR(255) = 'C:\importar\Informacion_complementaria.xlsx';
-DECLARE @pathCatalogo VARCHAR(255) = 'C:\importar\';
-DECLARE @pathProductosElectronicos VARCHAR(255) = 'C:\importar\Electronic accessories.xlsx';
-DECLARE @pathProductosImportados VARCHAR(255) = 'C:\importar\Productos_importados.xlsx';
+DECLARE @pathVentasRegistradas VARCHAR(255) = 'C:\Users\User\Desktop\ddbba\Ventas_registradas.csv';
+DECLARE @pathInformacionComplementaria VARCHAR(255) = 'C:\Users\User\Desktop\ddbba\Informacion_complementaria.xlsx';
+DECLARE @pathCatalogo VARCHAR(255) = 'C:\Users\User\Desktop\ddbba';
+DECLARE @pathProductosElectronicos VARCHAR(255) = 'C:\Users\User\Desktop\ddbba\Electronic accessories.xlsx';
+DECLARE @pathProductosImportados VARCHAR(255) = 'C:\Users\User\Desktop\ddbba\Productos_importados.xlsx'
 
-EXEC InsertarSucursales @pathInformacionComplementaria;
-EXEC InsertarEmpleados @pathInformacionComplementaria;
-EXEC InsertarMediosDePago @pathInformacionComplementaria;
-EXEC InsertarProductosElectronicos @pathProductosElectronicos
-BEGIN TRY
-EXEC IngresarCategorias @pathCatalogo, @pathInformacionComplementaria
-END TRY
-BEGIN CATCH
-	PRINT 'ERROR: ' + ERROR_MESSAGE()
-END CATCH
-EXEC InsertarProductosImportados @pathProductosImportados
-EXEC InsertarVentasRegistradas @pathVentasRegistradas
+EXEC inserciones.InsertarSucursales @pathInformacionComplementaria;
+EXEC inserciones.InsertarEmpleados @pathInformacionComplementaria;
+EXEC inserciones.InsertarMediosDePago @pathInformacionComplementaria;
+EXEC inserciones.InsertarProductosElectronicos @pathProductosElectronicos
+EXEC inserciones.IngresarCategorias @pathCatalogo, @pathInformacionComplementaria
+EXEC inserciones.InsertarProductosImportados @pathProductosImportados
+EXEC inserciones.InsertarVentasRegistradas @pathVentasRegistradas
 GO
 
-SELECT * FROM aurora.SUCURSAL
+SELECT * FROM seguridad.SUCURSAL
 GO
 
-SELECT * FROM aurora.TELEFONO
+SELECT * FROM seguridad.TELEFONO
 GO
 
-SELECT * FROM aurora.CARGO
+SELECT * FROM seguridad.CARGO
 GO
 
-SELECT * FROM aurora.EMPLEADO
+SELECT * FROM seguridad.EMPLEADO
 GO
 
-SELECT * FROM aurora.MEDIO_DE_PAGO
+SELECT * FROM transacciones.MEDIO_DE_PAGO
 GO
 
-SELECT * FROM aurora.CATEGORIA
+SELECT * FROM seguridad.CATEGORIA
 GO
 
-SELECT * FROM aurora.PRODUCTO
+SELECT * FROM productos.PRODUCTO
 GO
 
-SELECT * FROM aurora.VARIOS
+SELECT * FROM productos.VARIOS
 GO
 
-SELECT * FROM aurora.ELECTRONICO
+SELECT * FROM productos.ELECTRONICO
 GO
 
-SELECT * FROM aurora.IMPORTADO
+SELECT * FROM productos.IMPORTADO
 GO
 
-SELECT * FROM aurora.FACTURA
+SELECT * FROM transacciones.FACTURA
 GO
 
-SELECT * FROM aurora.VENTA
+SELECT * FROM transacciones.VENTA
 GO
 
-use clase_2
-/*
-USE master
+SELECT * FROM transacciones.NOTA_CREDITO
 GO
-
-DROP DATABASE Com5600G08
-GO
-*/

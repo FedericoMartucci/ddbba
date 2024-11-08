@@ -1,11 +1,21 @@
+USE Com5600G08
+GO
+
+--CONFIGURACIONES PARA LA IMPORTACION
+-- Habilita la visualización de opciones avanzadas en la configuración del motor
 EXEC sp_configure 'show advanced options', 1;
 RECONFIGURE;
-GO
-EXEC sp_configure 'Ole Automation Procedures', 1;
+--Habilitamos el 'Ole Automation Procedures' para permitir al motor ejecutar comandos de automatización de objetos
+EXEC sp_configure 'Ole Automation Procedures', 1;    
 RECONFIGURE;
-GO
+-- Volvemos a ocultar las opciones avanzadas para evitar cambios accidentales en configuraciones avanzadas
 EXEC sp_configure 'show advanced options', 0;
 RECONFIGURE;
+GO
+
+--CREAMOS SCHEMA PARA REPORTES
+IF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = 'reportes')
+    EXEC('CREATE SCHEMA reportes');
 GO
 
 /*
@@ -15,7 +25,7 @@ GO
 				=	semana, incluyendo sábado y domingo.			=
 				=====================================================
 */
-CREATE OR ALTER PROCEDURE GenerarInformeXMLFacturacionPorDiaSemana 
+CREATE OR ALTER PROCEDURE reportes.GenerarInformeXMLFacturacionPorDiaSemana 
     @rutaBase VARCHAR(100), 
     @nombreInforme VARCHAR(50),
     @mes INT,
@@ -37,9 +47,9 @@ BEGIN
             FORMAT(v.fecha, 'dddd', 'es-ES') AS dia_de_la_semana,
             SUM(p.precio_unidad * v.cantidad) AS total_facturado
         FROM 
-            aurora.VENTA v
+            transacciones.VENTA v
         JOIN 
-            aurora.PRODUCTO p ON v.id_producto = p.id_producto
+            productos.PRODUCTO p ON v.id_producto = p.id_producto
         WHERE 
             MONTH(v.fecha) = @mes
             AND YEAR(v.fecha) = @año
@@ -93,7 +103,7 @@ END;
 GO
 
 -- Ejemplo de uso
-EXEC GenerarInformeXMLFacturacionPorDiaSemana 
+EXEC reportes.GenerarInformeXMLFacturacionPorDiaSemana 
     @rutaBase = 'C:\Users\User\Desktop\ddbba\reportes', 
     @nombreInforme = 'FacturacionPorDiaSemana', 
     @mes = 3, 
@@ -106,7 +116,7 @@ GO
 				=	por turnos de trabajo por mes.			=
 				=============================================
 */
-CREATE OR ALTER PROCEDURE GenerarInformeXMLFacturacionPorTurnoTrimestral 
+CREATE OR ALTER PROCEDURE reportes.GenerarInformeXMLFacturacionPorTurnoTrimestral 
     @rutaBase VARCHAR(100), 
     @nombreInforme VARCHAR(50),
     @año INT,
@@ -133,11 +143,11 @@ BEGIN
             MONTH(v.fecha) AS mes,
             SUM(p.precio_unidad * v.cantidad) AS total_facturado
         FROM 
-            aurora.VENTA v
+            transacciones.VENTA v
         JOIN 
-            aurora.PRODUCTO p ON v.id_producto = p.id_producto
+            productos.PRODUCTO p ON v.id_producto = p.id_producto
         JOIN 
-            aurora.EMPLEADO e ON v.legajo = e.legajo
+            seguridad.EMPLEADO e ON v.legajo = e.legajo
         WHERE 
             YEAR(v.fecha) = @año
             AND MONTH(v.fecha) BETWEEN @mes_inicio AND @mes_fin
@@ -189,7 +199,7 @@ END;
 GO
 
 -- Ejemplo de uso
-EXEC GenerarInformeXMLFacturacionPorTurnoTrimestral 
+EXEC reportes.GenerarInformeXMLFacturacionPorTurnoTrimestral 
     @rutaBase = 'C:\Users\User\Desktop\ddbba\reportes', 
     @nombreInforme = 'FacturacionPorTurnoTrimestral', 
     @año = 2019, 
@@ -203,7 +213,7 @@ GO
 				=	vendidos en ese rango, ordenado de mayor a menor.		 =
 				==============================================================
 */
-CREATE OR ALTER PROCEDURE GenerarInformeXMLProductosVendidosPorRango
+CREATE OR ALTER PROCEDURE reportes.GenerarInformeXMLProductosVendidosPorRango
     @rutaBase VARCHAR(100), 
     @nombreInforme VARCHAR(50),
     @fechaInicio DATE,
@@ -226,9 +236,9 @@ BEGIN
             p.nombre_producto AS nombre_producto,
             SUM(v.cantidad) AS cantidad_total_vendida
         FROM 
-            aurora.VENTA v
+            transacciones.VENTA v
         INNER JOIN 
-            aurora.PRODUCTO p ON v.id_producto = p.id_producto
+            productos.PRODUCTO p ON v.id_producto = p.id_producto
         WHERE 
             v.fecha BETWEEN @fechaInicio AND @fechaFin
         GROUP BY 
@@ -281,7 +291,7 @@ END;
 GO
 
 -- Ejemplo de uso
-EXEC GenerarInformeXMLProductosVendidosPorRango 
+EXEC reportes.GenerarInformeXMLProductosVendidosPorRango 
     @rutaBase = 'C:\Users\User\Desktop\ddbba\reportes', 
     @nombreInforme = 'ProductosVendidosPorRango',
     @fechaInicio = '2019-01-01', 
@@ -296,7 +306,7 @@ GO
 				=	a menor.												 =
 				==============================================================
 */
-CREATE OR ALTER PROCEDURE GenerarInformeXMLProductosVendidosPorSucursal 
+CREATE OR ALTER PROCEDURE reportes.GenerarInformeXMLProductosVendidosPorSucursal 
     @rutaBase VARCHAR(100), 
     @nombreInforme VARCHAR(50), 
     @fechaInicio DATE, 
@@ -319,9 +329,9 @@ BEGIN
             s.reemplazar_por AS nombre_sucursal,
             SUM(v.cantidad) AS cantidad_total_vendida
         FROM 
-            aurora.VENTA v
+            transacciones.VENTA v
         JOIN 
-            aurora.SUCURSAL s ON v.id_sucursal = s.id
+            seguridad.SUCURSAL s ON v.id_sucursal = s.id
         WHERE 
             v.fecha BETWEEN @fechaInicio AND @fechaFin
         GROUP BY 
@@ -374,7 +384,7 @@ END;
 GO
 
 -- Ejemplo de uso
-EXEC GenerarInformeXMLProductosVendidosPorSucursal 
+EXEC reportes.GenerarInformeXMLProductosVendidosPorSucursal 
     @rutaBase = 'C:\Users\User\Desktop\ddbba\reportes', 
     @nombreInforme = 'ProductosVendidos', 
     @fechaInicio = '2019-01-01', 
@@ -386,7 +396,7 @@ GO
 				=		Mostrar los 5 productos más vendidos en un mes, por semana.	 =
 				======================================================================
 */
-CREATE OR ALTER PROCEDURE GenerarInformeXMLTop5ProductosPorSemana
+CREATE OR ALTER PROCEDURE reportes.GenerarInformeXMLTop5ProductosPorSemana
     @rutaBase VARCHAR(100), 
     @nombreInforme VARCHAR(50),
     @mes INT,
@@ -410,9 +420,9 @@ BEGIN
             p.nombre_producto AS nombre_producto,
             SUM(v.cantidad) AS total_vendido
         FROM 
-            aurora.VENTA v
+            transacciones.VENTA v
         INNER JOIN 
-            aurora.PRODUCTO p ON v.id_producto = p.id_producto
+            productos.PRODUCTO p ON v.id_producto = p.id_producto
         WHERE 
             MONTH(v.fecha) = @mes 
             AND YEAR(v.fecha) = @año
@@ -462,7 +472,7 @@ END;
 GO
 
 -- Ejemplo de uso
-EXEC GenerarInformeXMLTop5ProductosPorSemana 
+EXEC reportes.GenerarInformeXMLTop5ProductosPorSemana 
     @rutaBase = 'C:\Users\User\Desktop\ddbba\reportes', 
     @nombreInforme = 'Top5ProductosPorSemana',
     @mes = 3, 
@@ -474,7 +484,7 @@ GO
 				=		Mostrar los 5 productos menos vendidos en el mes.	 =
 				==============================================================
 */
-CREATE OR ALTER PROCEDURE GenerarInformeXMLProductosMenosVendidos 
+CREATE OR ALTER PROCEDURE reportes.GenerarInformeXMLProductosMenosVendidos 
     @rutaBase VARCHAR(100), 
     @nombreInforme VARCHAR(50)
 AS
@@ -495,9 +505,9 @@ BEGIN
             p.nombre_producto AS nombre_producto,
             SUM(v.cantidad) AS total_vendido
         FROM 
-            aurora.VENTA v
+            transacciones.VENTA v
         INNER JOIN 
-            aurora.PRODUCTO p ON v.id_producto = p.id_producto
+            productos.PRODUCTO p ON v.id_producto = p.id_producto
         WHERE 
             MONTH(v.fecha) = 3 -- MONTH(GETDATE()) 
             AND YEAR(v.fecha) = 2019 -- YEAR(GETDATE()) 
@@ -551,7 +561,7 @@ END;
 GO
 
 -- Ejemplo de uso
-EXEC GenerarInformeXMLProductosMenosVendidos 
+EXEC reportes.GenerarInformeXMLProductosMenosVendidos 
     @rutaBase = 'C:\Users\User\Desktop\ddbba\reportes', 
     @nombreInforme = 'ProductosMenosVendidos';
 GO
@@ -563,7 +573,7 @@ GO
 				=	y sucursal particulares						=
 				=================================================
 */
-CREATE OR ALTER PROCEDURE GenerarInformeXMLVentasPorFechaSucursal
+CREATE OR ALTER PROCEDURE reportes.GenerarInformeXMLVentasPorFechaSucursal
     @rutaBase VARCHAR(100), 
     @nombreInforme VARCHAR(50),
     @fecha DATE,
@@ -589,9 +599,9 @@ BEGIN
             v.cantidad AS cantidad_vendida,
             (p.precio_unidad * v.cantidad) AS total_facturado
         FROM 
-            aurora.VENTA v
+            transacciones.VENTA v
         INNER JOIN 
-            aurora.PRODUCTO p ON v.id_producto = p.id_producto
+            productos.PRODUCTO p ON v.id_producto = p.id_producto
         WHERE 
             v.fecha = @fecha
             AND v.id_sucursal = @idSucursal
@@ -636,7 +646,7 @@ END;
 GO
 
 -- Ejemplo de uso
-EXEC GenerarInformeXMLVentasPorFechaSucursal 
+EXEC reportes.GenerarInformeXMLVentasPorFechaSucursal 
     @rutaBase = 'C:\Users\User\Desktop\ddbba\reportes',
     @nombreInforme = 'VentasPorFechaSucursal',
     @fecha = '2019-03-10', 

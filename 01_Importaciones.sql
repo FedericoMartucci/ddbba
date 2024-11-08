@@ -14,13 +14,17 @@ EXEC sp_configure 'show advanced options', 0;
 RECONFIGURE;
 GO
 
+--CREAMOS SCHEMA PARA INSERCIONES
+IF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = 'inserciones')
+    EXEC('CREATE SCHEMA inserciones');
+GO
 /*
 				==============================================================
 				=			Procedure para insertar las sucursales			 =
 				==============================================================
 */
 
-CREATE OR ALTER PROCEDURE InsertarSucursales(@path VARCHAR(255))	--InformacionComplementaria
+CREATE OR ALTER PROCEDURE inserciones.InsertarSucursales(@path VARCHAR(255))	--InformacionComplementaria
 AS
 BEGIN
     CREATE TABLE #TEMP_SUCURSAL (
@@ -41,7 +45,7 @@ BEGIN
     -- Ejecutar el comando dinámico
     EXEC sp_executesql @sql;
 
-	INSERT INTO aurora.SUCURSAL (horario, ciudad, reemplazar_por, direccion, codigo_postal, provincia)
+	INSERT INTO seguridad.SUCURSAL (horario, ciudad, reemplazar_por, direccion, codigo_postal, provincia)
 	SELECT DISTINCT
     horario,
     ciudad,
@@ -52,7 +56,7 @@ BEGIN
 	FROM #TEMP_SUCURSAL AS temp
 	WHERE NOT EXISTS (
     SELECT 1
-    FROM aurora.SUCURSAL AS aurora
+    FROM seguridad.SUCURSAL AS aurora
     WHERE aurora.horario = temp.horario
       AND aurora.ciudad = temp.ciudad
       AND aurora.reemplazar_por = temp.reemplazar_por
@@ -61,7 +65,7 @@ BEGIN
       AND aurora.provincia = SUBSTRING(temp.direccion, CHARINDEX('Provincia', temp.direccion) + 13, LEN(temp.direccion))
 	);
 	
-    /*INSERT INTO aurora.SUCURSAL (horario, ciudad, reemplazar_por, direccion, codigo_postal, provincia)
+    /*INSERT INTO seguridad.SUCURSAL (horario, ciudad, reemplazar_por, direccion, codigo_postal, provincia)
     SELECT DISTINCT 
         horario,
         ciudad,
@@ -71,20 +75,20 @@ BEGIN
         SUBSTRING(direccion, CHARINDEX('Provincia', direccion) + 13, LEN(direccion)) AS provincia
     FROM #TEMP_SUCURSAL;*/
 
-    INSERT INTO aurora.TELEFONO (id_sucursal, telefono)
+    INSERT INTO seguridad.TELEFONO (id_sucursal, telefono)
 	SELECT DISTINCT s.id, t.telefono
-	FROM aurora.SUCURSAL s
+	FROM seguridad.SUCURSAL s
 	JOIN #TEMP_SUCURSAL t ON s.reemplazar_por = t.reemplazar_por
 	WHERE NOT EXISTS (
     SELECT 1
-    FROM aurora.TELEFONO tel
+    FROM seguridad.TELEFONO tel
     WHERE tel.id_sucursal = s.id
       AND tel.telefono = t.telefono
 	);
 	
-	/*INSERT INTO aurora.TELEFONO (id_sucursal, telefono)
+	/*INSERT INTO seguridad.TELEFONO (id_sucursal, telefono)
     SELECT DISTINCT s.id, t.telefono
-    FROM aurora.SUCURSAL s
+    FROM seguridad.SUCURSAL s
     JOIN #TEMP_SUCURSAL t ON s.reemplazar_por = t.reemplazar_por;*/
 
     DROP TABLE #TEMP_SUCURSAL;
@@ -97,7 +101,7 @@ GO
 				==============================================================
 */
 
-CREATE OR ALTER PROCEDURE InsertarEmpleados(@path VARCHAR(255))	--InformacionComplementaria
+CREATE OR ALTER PROCEDURE inserciones.InsertarEmpleados(@path VARCHAR(255))	--InformacionComplementaria
 AS
 BEGIN
     CREATE TABLE #TEMP_EMPLEADO (
@@ -126,23 +130,23 @@ BEGIN
     EXEC sp_executesql @sql;
 
     --Validamos no cargar datos duplicados
-	INSERT INTO aurora.CARGO (nombre)
+	INSERT INTO seguridad.CARGO (nombre)
 	SELECT DISTINCT cargo
 	FROM #TEMP_EMPLEADO
 	WHERE cargo IS NOT NULL
 	AND NOT EXISTS (
       SELECT 1
-      FROM aurora.CARGO c
+      FROM seguridad.CARGO c
       WHERE c.nombre = cargo
 	);
 	
-	/*INSERT INTO aurora.CARGO (nombre)
+	/*INSERT INTO seguridad.CARGO (nombre)
     SELECT DISTINCT cargo
     FROM #TEMP_EMPLEADO
-    WHERE cargo IS NOT NULL AND cargo NOT IN (SELECT nombre FROM aurora.CARGO);*/
+    WHERE cargo IS NOT NULL AND cargo NOT IN (SELECT nombre FROM seguridad.CARGO);*/
 
     
-	INSERT INTO aurora.EMPLEADO (legajo, nombre, apellido, dni, direccion, email_empresa, email_personal, CUIL, id_cargo, id_sucursal, turno)
+	INSERT INTO seguridad.EMPLEADO (legajo, nombre, apellido, dni, direccion, email_empresa, email_personal, CUIL, id_cargo, id_sucursal, turno)
 	SELECT DISTINCT
 		e.legajo,
 		e.nombre,
@@ -157,15 +161,15 @@ BEGIN
 		e.turno
 	FROM 
 		#TEMP_EMPLEADO e
-		LEFT JOIN aurora.CARGO c ON e.cargo = c.nombre
-		LEFT JOIN aurora.SUCURSAL s ON e.sucursal = s.reemplazar_por
+		LEFT JOIN seguridad.CARGO c ON e.cargo = c.nombre
+		LEFT JOIN seguridad.SUCURSAL s ON e.sucursal = s.reemplazar_por
 	WHERE NOT EXISTS (
     SELECT 1 
-    FROM aurora.EMPLEADO emp
+    FROM seguridad.EMPLEADO emp
     WHERE emp.legajo = e.legajo
 	);
 	
-	/*INSERT INTO aurora.EMPLEADO (legajo, nombre, apellido, dni, direccion, email_empresa, email_personal, CUIL, id_cargo, id_sucursal, turno)
+	/*INSERT INTO seguridad.EMPLEADO (legajo, nombre, apellido, dni, direccion, email_empresa, email_personal, CUIL, id_cargo, id_sucursal, turno)
     SELECT DISTINCT
         e.legajo,
         e.nombre,
@@ -180,8 +184,8 @@ BEGIN
         e.turno
     FROM 
         #TEMP_EMPLEADO e
-        LEFT JOIN aurora.CARGO c ON e.cargo = c.nombre
-        LEFT JOIN aurora.SUCURSAL s ON e.sucursal = s.reemplazar_por;*/
+        LEFT JOIN seguridad.CARGO c ON e.cargo = c.nombre
+        LEFT JOIN seguridad.SUCURSAL s ON e.sucursal = s.reemplazar_por;*/
 
     DROP TABLE #TEMP_EMPLEADO;
 END;
@@ -192,13 +196,16 @@ GO
 				=			Procedure para insertar los medios de pago		 =
 				==============================================================
 */
-CREATE OR ALTER PROCEDURE InsertarMediosDePago(@path VARCHAR(255))	--InformacionComplementaria
+CREATE OR ALTER PROCEDURE inserciones.InsertarMediosDePago(@path VARCHAR(255))	--InformacionComplementaria
 AS
 BEGIN
+	CREATE TABLE #TEMP_MEDIO_PAGO (
+		descripcion_ingles VARCHAR(50),
+		descripcion VARCHAR(50)
+	);
 	-- Armar el comando dinámico para OPENROWSET con el path
     DECLARE @sql NVARCHAR(MAX);
-	CREATE TABLE #TEMP_MEDIO_PAGO ( descripcion_ingles VARCHAR(50), descripcion VARCHAR(50) );
-
+	
     SET @sql = N'INSERT INTO #TEMP_MEDIO_PAGO (descripcion_ingles, descripcion)
 				 SELECT [F2], [F3]
 				 FROM OPENROWSET(''Microsoft.ACE.OLEDB.16.0'',
@@ -209,17 +216,15 @@ BEGIN
     EXEC sp_executesql @sql;
 
 	--Validamos que no se carguen duplicados
-	/*INSERT INTO aurora.MEDIO_DE_PAGO (descripcion_ingles, descripcion)
-	SELECT t.descripcion_ingles, t.descripcion FROM #TEMP_MEDIO_PAGO t*/
 
-	INSERT INTO aurora.MEDIO_DE_PAGO (descripcion_ingles, descripcion)
+	INSERT INTO transacciones.MEDIO_DE_PAGO (descripcion_ingles, descripcion)
 	SELECT DISTINCT
 		t.descripcion_ingles,
 		t.descripcion
 	FROM #TEMP_MEDIO_PAGO t
 	WHERE NOT EXISTS (
     SELECT 1
-    FROM aurora.MEDIO_DE_PAGO mp
+    FROM transacciones.MEDIO_DE_PAGO mp
     WHERE mp.descripcion_ingles = t.descripcion_ingles
       AND mp.descripcion = t.descripcion
 	);
@@ -262,19 +267,19 @@ GO
 				=		Procedure para insertar productos electrónicos		 =
 				==============================================================
 */
-CREATE OR ALTER PROCEDURE InsertarProductosElectronicos(@path VARCHAR(255))
+CREATE OR ALTER PROCEDURE inserciones.InsertarProductosElectronicos(@path VARCHAR(255))
 AS
 BEGIN
     DECLARE @ret decimal(10,2);
     DECLARE @id_categoria INT;
 	
 	-- Verificar si existe la categoría 'Accesorios Electronicos' y obtener su id
-    SET @id_categoria = (SELECT id FROM aurora.CATEGORIA WHERE descripcion = 'Accesorios Electronicos');
+    SET @id_categoria = (SELECT id FROM seguridad.CATEGORIA WHERE descripcion = 'Accesorios Electronicos');
 
 	-- Si la categoría no existe, crear una nueva
     IF @id_categoria IS NULL
     BEGIN
-        INSERT INTO aurora.CATEGORIA (descripcion)
+        INSERT INTO seguridad.CATEGORIA (descripcion)
         VALUES ('Accesorios Electronicos');
 
 		-- Obtener el id de la nueva categoría
@@ -306,7 +311,7 @@ BEGIN
 	-- Insertar en la tabla PRODUCTO utilizando los datos de #TEMP_ELECTRONICOS
     -- Acáí convertimos el precio en dólares a pesos
 	--Validamos no cargar duplicados
-	INSERT INTO aurora.PRODUCTO (nombre_producto, precio_unidad, id_categoria)
+	INSERT INTO productos.PRODUCTO (nombre_producto, precio_unidad, id_categoria)
 	SELECT DISTINCT 
 		nombre_producto, 
 		precio_unidad_en_dolares * @ret AS precio_unidad, 
@@ -314,33 +319,33 @@ BEGIN
 	FROM #TEMP_ELECTRONICOS
 	WHERE NOT EXISTS (
 		SELECT 1
-		FROM aurora.PRODUCTO p
+		FROM productos.PRODUCTO p
 		WHERE p.nombre_producto = nombre_producto
 		AND p.precio_unidad = precio_unidad_en_dolares * @ret
 		AND p.id_categoria = @id_categoria
 	);
-    /*INSERT INTO aurora.PRODUCTO (nombre_producto, precio_unidad, id_categoria)
+    /*INSERT INTO productos.PRODUCTO (nombre_producto, precio_unidad, id_categoria)
     SELECT DISTINCT nombre_producto, precio_unidad_en_dolares * @ret, @id_categoria
     FROM #TEMP_ELECTRONICOS;*/
 
 	-- Insertar en la tabla ELECTRONICO utilizando los IDs recién generados en PRODUCTO
 	--Validamos que no insertemos duplicados
-	INSERT INTO aurora.ELECTRONICO (id_producto, precio_unidad_en_dolares)
+	INSERT INTO productos.ELECTRONICO (id_producto, precio_unidad_en_dolares)
 	SELECT DISTINCT 
 		p.id_producto, 
 		t.precio_unidad_en_dolares
-	FROM aurora.PRODUCTO p
+	FROM productos.PRODUCTO p
 	JOIN #TEMP_ELECTRONICOS t ON p.nombre_producto = t.nombre_producto
 	WHERE p.precio_unidad = t.precio_unidad_en_dolares * @ret
 	AND NOT EXISTS (
 		SELECT 1
-		FROM aurora.ELECTRONICO e
+		FROM productos.ELECTRONICO e
 		WHERE e.id_producto = p.id_producto
 		AND e.precio_unidad_en_dolares = t.precio_unidad_en_dolares
 	);
-    /*INSERT INTO aurora.ELECTRONICO (id_producto, precio_unidad_en_dolares)
+    /*INSERT INTO productos.ELECTRONICO (id_producto, precio_unidad_en_dolares)
     SELECT DISTINCT p.id_producto, t.precio_unidad_en_dolares
-    FROM aurora.PRODUCTO p
+    FROM productos.PRODUCTO p
     JOIN #TEMP_ELECTRONICOS t ON p.nombre_producto = t.nombre_producto
     WHERE p.precio_unidad = t.precio_unidad_en_dolares * @ret;*/
 
@@ -354,7 +359,7 @@ GO
 				=		Procedure para insertar categorías de productos varios		 =
 				======================================================================
 */
-CREATE OR ALTER PROCEDURE IngresarCategorias @pathCatalogos VARCHAR(255), @pathClasificacion VARCHAR(255)
+CREATE OR ALTER PROCEDURE inserciones.IngresarCategorias @pathCatalogos VARCHAR(255), @pathClasificacion VARCHAR(255)
 AS
 BEGIN
 	CREATE TABLE #TEMP_CATEGORIAS (
@@ -378,20 +383,20 @@ BEGIN
 	DECLARE @id_categoria INT;
 
 	-- Usar la tabla temporal #TempCategoriasExcel para obtener y asignar las categorías a los productos en #TempCatalogo
-	-- Primero, asegurarse de que todas las categorías necesarias existen en la tabla aurora.CATEGORIA
-	INSERT INTO aurora.CATEGORIA (descripcion)
+	-- Primero, asegurarse de que todas las categorías necesarias existen en la tabla seguridad.CATEGORIA
+	INSERT INTO seguridad.CATEGORIA (descripcion)
 	SELECT DISTINCT 
 		linea_producto
 	FROM #TEMP_CATEGORIAS
 	WHERE NOT EXISTS (
 		SELECT 1
-		FROM aurora.CATEGORIA c
+		FROM seguridad.CATEGORIA c
 		WHERE c.descripcion = linea_producto
 	);
-	/*INSERT INTO aurora.CATEGORIA (descripcion)
+	/*INSERT INTO seguridad.CATEGORIA (descripcion)
 	SELECT DISTINCT linea_producto
 	FROM #TEMP_CATEGORIAS
-	WHERE linea_producto NOT IN (SELECT descripcion FROM aurora.CATEGORIA);*/
+	WHERE linea_producto NOT IN (SELECT descripcion FROM seguridad.CATEGORIA);*/
 	
 	CREATE TABLE #TEMP_CATALOGO (
 		id INT,
@@ -412,7 +417,7 @@ BEGIN
 	EXEC sp_executesql @sql;
 
 	-- Paso 5: Insertar datos en la tabla PRODUCTO
-	INSERT INTO aurora.PRODUCTO (nombre_producto, precio_unidad, id_categoria)
+	INSERT INTO productos.PRODUCTO (nombre_producto, precio_unidad, id_categoria)
 	SELECT DISTINCT
 		t.name, 
 		t.price, 
@@ -420,15 +425,15 @@ BEGIN
 	FROM 
 		#TEMP_CATALOGO AS t
 		JOIN #TEMP_CATEGORIAS AS ex ON t.category = ex.producto
-		JOIN aurora.CATEGORIA AS c ON ex.linea_producto = c.descripcion
+		JOIN seguridad.CATEGORIA AS c ON ex.linea_producto = c.descripcion
 	WHERE NOT EXISTS (
 		SELECT 1
-		FROM aurora.PRODUCTO p
+		FROM productos.PRODUCTO p
 		WHERE p.nombre_producto = t.name
 		AND p.precio_unidad = t.price
 		AND p.id_categoria = c.id
 );
-	/*INSERT INTO aurora.PRODUCTO (nombre_producto, precio_unidad, id_categoria)
+	/*INSERT INTO productos.PRODUCTO (nombre_producto, precio_unidad, id_categoria)
 	SELECT DISTINCT
 		t.name, 
 		t.price, 
@@ -436,10 +441,10 @@ BEGIN
 	FROM 
 		#TEMP_CATALOGO AS t
 		JOIN #TEMP_CATEGORIAS AS ex ON t.category = ex.producto
-		JOIN aurora.CATEGORIA AS c ON ex.linea_producto = c.descripcion;*/
+		JOIN seguridad.CATEGORIA AS c ON ex.linea_producto = c.descripcion;*/
 	
 	-- Paso 6: Insertar datos en la tabla VARIOS
-	INSERT INTO aurora.VARIOS (id_producto, fecha, hora, unidad_de_referencia)
+	INSERT INTO productos.VARIOS (id_producto, fecha, hora, unidad_de_referencia)
 	SELECT DISTINCT
 	    p.id_producto,
 	    CAST(t.date AS DATE),
@@ -447,18 +452,18 @@ BEGIN
 	    t.reference_unit
 	FROM 
 	    #TEMP_CATALOGO AS t
-	    JOIN aurora.PRODUCTO AS p 
+	    JOIN productos.PRODUCTO AS p 
 	        ON t.name = p.nombre_producto
 	        AND t.price = p.precio_unidad
 	WHERE NOT EXISTS (
 	    SELECT 1
-	    FROM aurora.VARIOS v
+	    FROM productos.VARIOS v
 	    WHERE v.id_producto = p.id_producto
 	      AND v.fecha = CAST(t.date AS DATE)
 	      AND v.hora = CAST(t.date AS TIME(0))
 	      AND v.unidad_de_referencia = t.reference_unit
 	);
-	/*INSERT INTO aurora.VARIOS (id_producto, fecha, hora, unidad_de_referencia)
+	/*INSERT INTO productos.VARIOS (id_producto, fecha, hora, unidad_de_referencia)
 	SELECT DISTINCT
 		p.id_producto,
 		CAST(t.date AS DATE),
@@ -466,7 +471,7 @@ BEGIN
 		t.reference_unit
 	FROM 
 		#TEMP_CATALOGO AS t
-		JOIN aurora.PRODUCTO AS p ON t.name = p.nombre_producto
+		JOIN productos.PRODUCTO AS p ON t.name = p.nombre_producto
 		AND t.price = p.precio_unidad;*/
 	
 	-- Limpiar tablas temporales
@@ -480,7 +485,7 @@ GO
 				=		Procedure para insertar productos importados	 =
 				==========================================================
 */
-CREATE OR ALTER PROCEDURE InsertarProductosImportados @path VARCHAR(255)
+CREATE OR ALTER PROCEDURE inserciones.InsertarProductosImportados @path VARCHAR(255)
 AS
 BEGIN
 	-- Paso 1: Crear una tabla temporal para cargar el archivo Excel
@@ -510,18 +515,18 @@ BEGIN
 	-- Paso 3: Insertar categorías que no existen en la tabla CATEGORIA
 	--Validamos no cargar repetidos
 
-	INSERT INTO aurora.CATEGORIA (descripcion)
+	INSERT INTO seguridad.CATEGORIA (descripcion)
 	SELECT DISTINCT Categoria
 	FROM #TEMPORAL_PRODUCTOS t
 	WHERE NOT EXISTS (
 	    SELECT 1
-	    FROM aurora.CATEGORIA c
+	    FROM seguridad.CATEGORIA c
 	    WHERE c.descripcion = t.Categoria
 	);
-	/*INSERT INTO aurora.CATEGORIA (descripcion)
+	/*INSERT INTO seguridad.CATEGORIA (descripcion)
 	SELECT DISTINCT Categoria
 	FROM #TEMPORAL_PRODUCTOS
-	WHERE Categoria NOT IN (SELECT descripcion FROM aurora.CATEGORIA);*/
+	WHERE Categoria NOT IN (SELECT descripcion FROM seguridad.CATEGORIA);*/
 
 	-- Paso 4: Insertar productos
 	-- Primero, insertamos los productos y luego los buscamos para llenar IMPORTADO
@@ -529,52 +534,52 @@ BEGIN
 
 	-- Insertar los productos
 	--Validamos
-	INSERT INTO aurora.PRODUCTO (nombre_producto, precio_unidad, id_categoria)
+	INSERT INTO productos.PRODUCTO (nombre_producto, precio_unidad, id_categoria)
 	SELECT DISTINCT
 	    t.NombreProducto, 
 	    t.PrecioUnidad, 
-	    (SELECT id FROM aurora.CATEGORIA WHERE descripcion = t.Categoria)
+	    (SELECT id FROM seguridad.CATEGORIA WHERE descripcion = t.Categoria)
 	FROM #TEMPORAL_PRODUCTOS t
 	WHERE NOT EXISTS (
 	    SELECT 1
-	    FROM aurora.PRODUCTO p
+	    FROM productos.PRODUCTO p
 	    WHERE p.nombre_producto = t.NombreProducto
 	      AND p.precio_unidad = t.PrecioUnidad
-	      AND p.id_categoria = (SELECT id FROM aurora.CATEGORIA WHERE descripcion = t.Categoria)
+	      AND p.id_categoria = (SELECT id FROM seguridad.CATEGORIA WHERE descripcion = t.Categoria)
 	);
-	/*INSERT INTO aurora.PRODUCTO (nombre_producto, precio_unidad, id_categoria)
+	/*INSERT INTO productos.PRODUCTO (nombre_producto, precio_unidad, id_categoria)
 	SELECT DISTINCT
 		NombreProducto, 
 		PrecioUnidad, 
-		(SELECT id FROM aurora.CATEGORIA WHERE descripcion = t.Categoria)
+		(SELECT id FROM seguridad.CATEGORIA WHERE descripcion = t.Categoria)
 	FROM #TEMPORAL_PRODUCTOS AS t;*/
 	
 	-- Paso 5: Insertar en IMPORTADO usando los IDs de los productos insertados
-	INSERT INTO aurora.IMPORTADO (id_producto, proveedor, cantidad_por_unidad)
+	INSERT INTO productos.IMPORTADO (id_producto, proveedor, cantidad_por_unidad)
 	SELECT DISTINCT
 	    p.id_producto,  -- ID del producto de la tabla PRODUCTO
 	    t.Proveedor, 
 	    t.CantidadPorUnidad
 	FROM 
 	    #TEMPORAL_PRODUCTOS AS t
-	JOIN aurora.PRODUCTO AS p 
+	JOIN productos.PRODUCTO AS p 
 	    ON p.nombre_producto = t.NombreProducto 
 	    AND p.precio_unidad = t.PrecioUnidad
 	WHERE NOT EXISTS (
 	    SELECT 1
-	    FROM aurora.IMPORTADO i
+	    FROM productos.IMPORTADO i
 	    WHERE i.id_producto = p.id_producto
 	      AND i.proveedor = t.Proveedor
 	      AND i.cantidad_por_unidad = t.CantidadPorUnidad
 	);
-	/*INSERT INTO aurora.IMPORTADO (id_producto, proveedor, cantidad_por_unidad)
+	/*INSERT INTO productos.IMPORTADO (id_producto, proveedor, cantidad_por_unidad)
 	SELECT DISTINCT
 		p.id_producto,  -- ID del producto de la tabla PRODUCTO
 		t.Proveedor, 
 		t.CantidadPorUnidad
 	FROM 
 		#TEMPORAL_PRODUCTOS AS t
-	JOIN aurora.PRODUCTO AS p ON p.nombre_producto = t.NombreProducto AND p.precio_unidad = t.PrecioUnidad;*/ -- Busca el producto por nombre y precio
+	JOIN productos.PRODUCTO AS p ON p.nombre_producto = t.NombreProducto AND p.precio_unidad = t.PrecioUnidad;*/ -- Busca el producto por nombre y precio
 	
 	-- Paso 6: Limpiar las tablas temporales
 	DROP TABLE #TEMPORAL_PRODUCTOS;
@@ -586,7 +591,7 @@ GO
 				=		Procedure para insertar las ventas y facturas		 =
 				==============================================================
 */
-CREATE OR ALTER PROCEDURE InsertarVentasRegistradas(@path VARCHAR(255))
+CREATE OR ALTER PROCEDURE inserciones.InsertarVentasRegistradas(@path VARCHAR(255))
 AS
 BEGIN
 
@@ -665,28 +670,49 @@ BEGIN
 		END,
 		fecha = CONVERT(DATE, fecha, 101); -- Formato de fecha MM/DD/YYYY
 
+	-- Insertar nuevos tipos de cliente en TIPO
+    INSERT INTO seguridad.TIPO (nombre)
+    SELECT DISTINCT tipo_de_cliente
+    FROM #TEMP_VENTAS t
+    WHERE NOT EXISTS (
+        SELECT 1
+        FROM seguridad.TIPO tp
+        WHERE tp.nombre = t.tipo_de_cliente
+    );
+
+    -- Insertar nuevos clientes en CLIENTE
+    INSERT INTO seguridad.CLIENTE (genero, id_tipo)
+    SELECT DISTINCT
+        t.genero,
+        tp.id
+    FROM #TEMP_VENTAS t
+    INNER JOIN seguridad.TIPO tp ON tp.nombre = t.tipo_de_cliente
+    WHERE NOT EXISTS (
+        SELECT 1
+        FROM seguridad.CLIENTE c
+        WHERE c.genero = t.genero AND c.id_tipo = tp.id
+    );
+
 	--Validar que no sean duplicados
-	INSERT INTO aurora.FACTURA (id, tipo_de_factura)
+	INSERT INTO transacciones.FACTURA (id, tipo_de_factura)
 	SELECT DISTINCT 
 	    id_factura, 
 	    tipo_de_factura
 	FROM #TEMP_VENTAS
 	WHERE NOT EXISTS (
 	    SELECT 1
-	    FROM aurora.FACTURA f
+	    FROM transacciones.FACTURA f
 	    WHERE f.id = #TEMP_VENTAS.id_factura
 	      AND f.tipo_de_factura = #TEMP_VENTAS.tipo_de_factura
 	);
-	/*INSERT INTO aurora.FACTURA (id, tipo_de_factura)
+	/*INSERT INTO transacciones.FACTURA (id, tipo_de_factura)
 	SELECT id_factura, tipo_de_factura
 	FROM #TEMP_VENTAS*/
 
-	INSERT INTO aurora.VENTA (id_factura, id_sucursal, tipo_de_cliente, genero, id_producto, cantidad, fecha, hora, id_medio_de_pago, legajo, identificador_de_pago)
+	INSERT INTO transacciones.VENTA (id_factura, id_sucursal, id_producto, cantidad, fecha, hora, id_medio_de_pago, legajo, identificador_de_pago)
 	SELECT DISTINCT
 	    f.id,
 	    s.id,
-	    t.tipo_de_cliente,
-	    t.genero,
 	    p.id_producto,
 	    t.cantidad,
 	    t.fecha,
@@ -695,18 +721,16 @@ BEGIN
 	    e.legajo,
 	    t.identificador_de_pago
 	FROM #TEMP_VENTAS t
-	INNER JOIN aurora.FACTURA f ON f.id = t.id_factura
-	INNER JOIN aurora.SUCURSAL s ON s.ciudad = t.ciudad
-	INNER JOIN aurora.PRODUCTO p ON p.nombre_producto = t.producto AND p.precio_unidad = t.precio_unitario
-	INNER JOIN aurora.MEDIO_DE_PAGO m ON m.descripcion_ingles = t.medio_de_pago
-	INNER JOIN aurora.EMPLEADO e ON e.legajo = t.empleado
+	INNER JOIN transacciones.FACTURA f ON f.id = t.id_factura
+	INNER JOIN seguridad.SUCURSAL s ON s.ciudad = t.ciudad
+	INNER JOIN productos.PRODUCTO p ON p.nombre_producto = t.producto AND p.precio_unidad = t.precio_unitario
+	INNER JOIN transacciones.MEDIO_DE_PAGO m ON m.descripcion_ingles = t.medio_de_pago
+	INNER JOIN seguridad.EMPLEADO e ON e.legajo = t.empleado
 	WHERE NOT EXISTS (
 	    SELECT 1
-	    FROM aurora.VENTA v
+	    FROM transacciones.VENTA v
 	    WHERE v.id_factura = f.id
 	      AND v.id_sucursal = s.id
-	      AND v.tipo_de_cliente = t.tipo_de_cliente
-	      AND v.genero = t.genero
 	      AND v.id_producto = p.id_producto
 	      AND v.cantidad = t.cantidad
 	      AND v.fecha = t.fecha
@@ -715,7 +739,7 @@ BEGIN
 	      AND v.legajo = e.legajo
 	      AND v.identificador_de_pago = t.identificador_de_pago
 	);
-	/*INSERT INTO aurora.VENTA (id_factura, id_sucursal, tipo_de_cliente, genero, id_producto, cantidad, fecha, hora, id_medio_de_pago, legajo, identificador_de_pago)
+	/*INSERT INTO transacciones.VENTA (id_factura, id_sucursal, tipo_de_cliente, genero, id_producto, cantidad, fecha, hora, id_medio_de_pago, legajo, identificador_de_pago)
 	SELECT DISTINCT
 		f.id,
 		s.id,
@@ -729,76 +753,13 @@ BEGIN
 		e.legajo,
 		t.identificador_de_pago
 	FROM #TEMP_VENTAS t
-	INNER JOIN aurora.FACTURA f ON f.id = t.id_factura
-	INNER JOIN aurora.SUCURSAL s ON s.ciudad = t.ciudad
-	INNER JOIN aurora.PRODUCTO p ON p.nombre_producto = t.producto AND p.precio_unidad = t.precio_unitario
-	INNER JOIN aurora.MEDIO_DE_PAGO m ON m.descripcion_ingles = t.medio_de_pago
-	INNER JOIN aurora.EMPLEADO e ON e.legajo = t.empleado*/
+	INNER JOIN transacciones.FACTURA f ON f.id = t.id_factura
+	INNER JOIN seguridad.SUCURSAL s ON s.ciudad = t.ciudad
+	INNER JOIN productos.PRODUCTO p ON p.nombre_producto = t.producto AND p.precio_unidad = t.precio_unitario
+	INNER JOIN transacciones.MEDIO_DE_PAGO m ON m.descripcion_ingles = t.medio_de_pago
+	INNER JOIN seguridad.EMPLEADO e ON e.legajo = t.empleado*/
 
 	DROP TABLE #TEMP_VENTAS
 END;
 GO
-
-DECLARE @pathVentasRegistradas VARCHAR(255) = 'C:\Users\User\Desktop\ddbba\Ventas_registradas.csv';
-DECLARE @pathInformacionComplementaria VARCHAR(255) = 'C:\Users\User\Desktop\ddbba\Informacion_complementaria.xlsx';
-DECLARE @pathCatalogo VARCHAR(255) = 'C:\Users\User\Desktop\ddbba';
-DECLARE @pathProductosElectronicos VARCHAR(255) = 'C:\Users\User\Desktop\ddbba\Electronic accessories.xlsx';
-DECLARE @pathProductosImportados VARCHAR(255) = 'C:\Users\User\Desktop\ddbba\Productos_importados.xlsx'
-
-
-EXEC InsertarSucursales @pathInformacionComplementaria;
-EXEC InsertarEmpleados @pathInformacionComplementaria;
-EXEC InsertarMediosDePago @pathInformacionComplementaria;
-EXEC InsertarProductosElectronicos @pathProductosElectronicos
-EXEC IngresarCategorias @pathCatalogo, @pathInformacionComplementaria
-EXEC InsertarProductosImportados @pathProductosImportados
-EXEC InsertarVentasRegistradas @pathVentasRegistradas
-GO
-
-SELECT * FROM aurora.SUCURSAL
-GO
-
-SELECT * FROM aurora.TELEFONO
-GO
-
-SELECT * FROM aurora.CARGO
-GO
-
-SELECT * FROM aurora.EMPLEADO
-GO
-
-SELECT * FROM aurora.MEDIO_DE_PAGO
-GO
-
-SELECT * FROM aurora.CATEGORIA
-GO
-
-SELECT * FROM aurora.PRODUCTO
-GO
-
-SELECT * FROM aurora.VARIOS
-GO
-
-SELECT * FROM aurora.ELECTRONICO
-GO
-
-SELECT * FROM aurora.IMPORTADO
-GO
-
-SELECT * FROM aurora.FACTURA
-GO
-
-SELECT * FROM aurora.VENTA
-GO
-
-
-/*
-USE master
-GO
-
-DROP DATABASE Com5600G08
-GO
-*/
-
-/*****************************************************************************************/
 

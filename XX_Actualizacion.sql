@@ -1,60 +1,53 @@
-USE Com5600G08;
+USE Com5600G08
+GO
+
+--CREAMOS SCHEMA PARA ACTUALIZACIONES
+IF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = 'actualizaciones')
+    EXEC('CREATE SCHEMA actualizaciones');
 GO
 
 -- Stored Procedure para actualizar la tabla CARGO
-CREATE PROCEDURE aurora.sp_update_cargo
+CREATE OR ALTER PROCEDURE actualizaciones.ActualzarCargo
     @id INT,
     @nombre VARCHAR(100)
 AS
 BEGIN
-    UPDATE aurora.CARGO
+    UPDATE seguridad.CARGO
     SET nombre = @nombre
     WHERE id = @id;
 END;
 GO
 
--- Stored Procedure para actualizar la tabla TIPO
-CREATE PROCEDURE aurora.sp_update_tipo
-    @id INT,
-    @genero CHAR(20)
-AS
-BEGIN
-    UPDATE aurora.TIPO
-    SET genero = @genero
-    WHERE id = @id;
-END;
-GO
-
--- Stored Procedure para actualizar la tabla CATEGORIA
-CREATE PROCEDURE aurora.sp_update_categoria
-    @id INT,
-    @descripcion VARCHAR(50),
-    @esValido INT
-AS
-BEGIN
-    UPDATE aurora.CATEGORIA
-    SET descripcion = @descripcion,
-        esValido = @esValido
-    WHERE id = @id;
-END;
-GO
-
 -- Stored Procedure para actualizar la tabla CLIENTE
-CREATE PROCEDURE aurora.sp_update_cliente
+CREATE OR ALTER PROCEDURE actualizaciones.ActualizarCliente
     @id INT,
     @genero VARCHAR(6),
     @id_tipo INT
 AS
 BEGIN
-    UPDATE aurora.CLIENTE
+    UPDATE seguridad.CLIENTE
     SET genero = @genero,
         id_tipo = @id_tipo
     WHERE id = @id;
 END;
 GO
 
+-- Stored Procedure para actualizar la tabla CATEGORIA
+CREATE OR ALTER PROCEDURE actualizaciones.ActualizarCategoria
+    @id INT,
+    @descripcion VARCHAR(50),
+    @esValido INT
+AS
+BEGIN
+    UPDATE seguridad.CATEGORIA
+    SET descripcion = @descripcion,
+        esValido = @esValido
+    WHERE id = @id;
+END;
+GO
+
 -- Stored Procedure para actualizar la tabla SUCURSAL
-CREATE PROCEDURE aurora.sp_update_sucursal
+CREATE OR ALTER PROCEDURE actualizaciones.ActualizarSucursal
     @id INT,
     @horario VARCHAR(50),
     @ciudad VARCHAR(50),
@@ -64,7 +57,7 @@ CREATE PROCEDURE aurora.sp_update_sucursal
     @provincia VARCHAR(50)
 AS
 BEGIN
-    UPDATE aurora.SUCURSAL
+    UPDATE seguridad.SUCURSAL
     SET horario = @horario,
         ciudad = @ciudad,
         reemplazar_por = @reemplazar_por,
@@ -76,19 +69,19 @@ END;
 GO
 
 -- Stored Procedure para actualizar la tabla TELEFONO
-CREATE PROCEDURE aurora.sp_update_telefono
+CREATE OR ALTER PROCEDURE actualizaciones.ActualizarTelefono
     @id_sucursal INT,
     @telefono CHAR(9)
 AS
 BEGIN
-    UPDATE aurora.TELEFONO
+    UPDATE seguridad.TELEFONO
     SET telefono = @telefono
     WHERE id_sucursal = @id_sucursal;
 END;
 GO
 
 -- Stored Procedure para actualizar la tabla EMPLEADO
-CREATE PROCEDURE aurora.sp_update_empleado
+CREATE OR ALTER PROCEDURE actualizaciones.ActualizarEmpleado
     @legajo INT,
     @nombre VARCHAR(50),
     @apellido VARCHAR(50),
@@ -103,7 +96,7 @@ CREATE PROCEDURE aurora.sp_update_empleado
     @esValido INT
 AS
 BEGIN
-    UPDATE aurora.EMPLEADO
+    UPDATE seguridad.EMPLEADO
     SET nombre = @nombre,
         apellido = @apellido,
         dni = @dni,
@@ -120,7 +113,7 @@ END;
 GO
 
 -- Stored Procedure para actualizar la tabla PRODUCTO
-CREATE PROCEDURE aurora.sp_update_producto
+CREATE OR ALTER PROCEDURE actualizaciones.ActualizarProducto
     @id_producto INT,
     @precio_unidad DECIMAL(10, 2),
     @nombre_producto VARCHAR(100),
@@ -129,7 +122,7 @@ CREATE PROCEDURE aurora.sp_update_producto
     @esValido INT
 AS
 BEGIN
-    UPDATE aurora.PRODUCTO
+    UPDATE productos.PRODUCTO
     SET precio_unidad = @precio_unidad,
         nombre_producto = @nombre_producto,
         id_categoria = @id_categoria,
@@ -140,13 +133,13 @@ END;
 GO
 
 -- Stored Procedure para actualizar la tabla FACTURA
-CREATE PROCEDURE aurora.sp_update_factura
+CREATE OR ALTER PROCEDURE actualizaciones.ActualizarFactura
     @id CHAR(11),
     @tipo_de_factura CHAR,
     @estado BIT
 AS
 BEGIN
-    UPDATE aurora.FACTURA
+    UPDATE transacciones.FACTURA
     SET tipo_de_factura = @tipo_de_factura,
         estado = @estado
     WHERE id = @id;
@@ -154,13 +147,13 @@ END;
 GO
 
 -- Stored Procedure para actualizar la tabla NOTA_CREDITO
-CREATE PROCEDURE aurora.sp_update_nota_credito
+CREATE OR ALTER PROCEDURE actualizaciones.ActualizarNotaCredito
     @id INT,
     @monto DECIMAL(10, 2),
     @id_factura CHAR(11)
 AS
 BEGIN
-    UPDATE aurora.NOTA_CREDITO
+    UPDATE transacciones.NOTA_CREDITO
     SET monto = @monto,
         id_factura = @id_factura
     WHERE id = @id;
@@ -168,13 +161,13 @@ END;
 GO
 
 -- Stored Procedure para actualizar la tabla MEDIO_DE_PAGO
-CREATE PROCEDURE aurora.sp_update_medio_de_pago
+CREATE OR ALTER PROCEDURE actualizaciones.ActualizarMedioDePago
     @id INT,
     @descripcion_ingles VARCHAR(50),
     @descripcion VARCHAR(50)
 AS
 BEGIN
-    UPDATE aurora.MEDIO_DE_PAGO
+    UPDATE transacciones.MEDIO_DE_PAGO
     SET descripcion_ingles = @descripcion_ingles,
         descripcion = @descripcion
     WHERE id = @id;
@@ -182,7 +175,7 @@ END;
 GO
 
 -- Stored Procedure para actualizar la tabla VENTA
-CREATE PROCEDURE aurora.sp_update_venta
+CREATE OR ALTER PROCEDURE actualizaciones.ActualizarVenta
     @id INT,
     @id_factura CHAR(11),
     @id_sucursal INT,
@@ -195,7 +188,7 @@ CREATE PROCEDURE aurora.sp_update_venta
     @identificador_de_pago VARCHAR(22)
 AS
 BEGIN
-    UPDATE aurora.VENTA
+    UPDATE transacciones.VENTA
     SET id_factura = @id_factura,
         id_sucursal = @id_sucursal,
         id_producto = @id_producto,
@@ -210,13 +203,13 @@ END;
 GO
 
 -- Stored Procedure para actualizar la tabla IMPORTADO
-CREATE PROCEDURE aurora.sp_update_importado
+CREATE OR ALTER PROCEDURE actualizaciones.ActualizarImportado
     @id_producto INT,
     @proveedor VARCHAR(255),
     @cantidad_por_unidad VARCHAR(255)
 AS
 BEGIN
-    UPDATE aurora.IMPORTADO
+    UPDATE productos.IMPORTADO
     SET proveedor = @proveedor,
         cantidad_por_unidad = @cantidad_por_unidad
     WHERE id_producto = @id_producto;
@@ -224,14 +217,14 @@ END;
 GO
 
 -- Stored Procedure para actualizar la tabla VARIOS
-CREATE PROCEDURE aurora.sp_update_varios
+CREATE OR ALTER PROCEDURE actualizaciones.ActualizarVarios
     @id_producto INT,
     @fecha DATE,
     @hora TIME(0),
     @unidad_de_referencia VARCHAR(50)
 AS
 BEGIN
-    UPDATE aurora.VARIOS
+    UPDATE productos.VARIOS
     SET fecha = @fecha,
         hora = @hora,
         unidad_de_referencia = @unidad_de_referencia
@@ -240,12 +233,12 @@ END;
 GO
 
 -- Stored Procedure para actualizar la tabla ELECTRONICO
-CREATE PROCEDURE aurora.sp_update_electronico
+CREATE OR ALTER PROCEDURE actualizaciones.ActualizarElectronico
     @id_producto INT,
     @precio_unidad_en_dolares DECIMAL(10, 2)
 AS
 BEGIN
-    UPDATE aurora.ELECTRONICO
+    UPDATE productos.ELECTRONICO
     SET precio_unidad_en_dolares = @precio_unidad_en_dolares
     WHERE id_producto = @id_producto;
 END;
