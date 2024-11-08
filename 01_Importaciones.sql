@@ -1,10 +1,15 @@
+--CREAMOS LOS PROCEDURE NECESARIOS PARA LEVANTAR LOS ARCHIVOS QUE RECIBIMOS
 USE Com5600G08
 GO
 
+--CONFIGURACIONES PARA LA IMPORTACION
+-- Habilita la visualización de opciones avanzadas en la configuración del motor
 EXEC sp_configure 'show advanced options', 1;
 RECONFIGURE;
+--Habilitamos el 'Ole Automation Procedures' para permitir al motor ejecutar comandos de automatización de objetos
 EXEC sp_configure 'Ole Automation Procedures', 1;    
 RECONFIGURE;
+-- Volvemos a ocultar las opciones avanzadas para evitar cambios accidentales en configuraciones avanzadas
 EXEC sp_configure 'show advanced options', 0;
 RECONFIGURE;
 GO

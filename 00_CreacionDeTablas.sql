@@ -1,15 +1,12 @@
-
 -- CREACION DE LA BASE DE DATOS 'Com5600G08'
 
 IF NOT EXISTS (SELECT * FROM sys.databases WHERE name = 'Com5600G08')
 BEGIN
     CREATE DATABASE Com5600G08;
 END;
-
 GO
 
 USE Com5600G08;
-
 GO
 
 -- CREACION DEL SCHEMA 'aurora'
@@ -21,6 +18,7 @@ END;
 
 -- CREACION DE LAS TABLAS DENTRO DEL SCHEMA 'aurora'
 
+--CREAMOS LA TABLA 'CARGO' SI NO EXISTE PREVIAMENTE, LA MISMA METODOLOGIA SE APLICA AL RESTO DE LAS TABLAS
 IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'aurora.CARGO') AND type in (N'U'))
 BEGIN
     CREATE TABLE aurora.CARGO (
@@ -29,16 +27,17 @@ BEGIN
     );
 END;
 
-/*
-IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'aurora.TIPO') AND type in (N'U'))
+
+/*IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'aurora.TIPO') AND type in (N'U'))
 BEGIN
     CREATE TABLE aurora.TIPO (
         id INT CONSTRAINT PK_TIPO_ID PRIMARY KEY,
         nombre VARCHAR(255) NOT NULL
     );
-END;
-*/
+END;*/
 
+
+--CREAMOS LA TABLA 'CATEGORIA'
 IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'aurora.CATEGORIA') AND type in (N'U'))
 BEGIN
     CREATE TABLE aurora.CATEGORIA (
@@ -47,8 +46,8 @@ BEGIN
     );
 END;
 
-/*
-IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'aurora.CLIENTE') AND type in (N'U'))
+
+/*IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'aurora.CLIENTE') AND type in (N'U'))
 BEGIN
     CREATE TABLE aurora.CLIENTE (
         id INT CONSTRAINT PK_CLIENTE_ID PRIMARY KEY,
@@ -56,9 +55,10 @@ BEGIN
         id_tipo INT,
         CONSTRAINT FK_ID_TIPO_CLIENTE_TIPO FOREIGN KEY (id_tipo) REFERENCES aurora.TIPO(id)
     );
-END;
-*/
+END;*/
 
+
+--CREAMOS LA TABLA 'SUCURSAL'
 IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'aurora.SUCURSAL') AND type in (N'U'))
 BEGIN
     CREATE TABLE aurora.SUCURSAL (
@@ -72,6 +72,7 @@ BEGIN
     );
 END;
 
+--CREAMOS LA TABLA 'TELEFONO'
 IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'aurora.TELEFONO') AND type in (N'U'))
 BEGIN
     CREATE TABLE aurora.TELEFONO (
@@ -81,6 +82,8 @@ BEGIN
     );
 END;
 
+
+--CREAMOS LA TABLA 'EMPLEADO'
 IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'aurora.EMPLEADO') AND type in (N'U'))
 BEGIN
     CREATE TABLE aurora.EMPLEADO (
@@ -100,6 +103,7 @@ BEGIN
     );
 END;
 
+--CREAMOS LA TABLA 'PRODUCTO'
 IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'aurora.PRODUCTO') AND type in (N'U'))
 BEGIN
     CREATE TABLE aurora.PRODUCTO (
@@ -111,6 +115,7 @@ BEGIN
     );
 END;
 
+--CREAMOS LA TABLA 'FACTURA'
 IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'aurora.FACTURA') AND type in (N'U'))
 BEGIN
     CREATE TABLE aurora.FACTURA (
@@ -119,6 +124,7 @@ BEGIN
     );
 END;
 
+--CREAMOS LA TABLA 'MEDIO DE PAGO'
 IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'aurora.MEDIO_DE_PAGO') AND type in (N'U'))
 BEGIN
     CREATE TABLE aurora.MEDIO_DE_PAGO (
@@ -128,6 +134,7 @@ BEGIN
     );
 END;
 
+--CREAMOS LA TABLA 'VENTA'
 IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'aurora.VENTA') AND type in (N'U'))
 BEGIN
     CREATE TABLE aurora.VENTA (
@@ -157,6 +164,7 @@ BEGIN
     );
 END;
 
+--CREAMOS LA TABLA 'IMPORTADO'
 IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'aurora.IMPORTADO') AND type in (N'U'))
 BEGIN
     CREATE TABLE aurora.IMPORTADO (
@@ -167,6 +175,7 @@ BEGIN
     );
 END;
 
+--CREAMOS LA TABLA 'VARIOS'
 IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'aurora.VARIOS') AND type in (N'U'))
 BEGIN
     CREATE TABLE aurora.VARIOS (
@@ -178,6 +187,7 @@ BEGIN
     );
 END;
 
+--CREAMOS LA TABLA 'ELECTRONICO'
 IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'aurora.ELECTRONICO') AND type in (N'U'))
 BEGIN
     CREATE TABLE aurora.ELECTRONICO (
@@ -187,4 +197,6 @@ BEGIN
     );
 END;
 GO
+
+use clase_2
 
