@@ -183,7 +183,7 @@ BEGIN
 END;
 
 --CREAMOS LA TABLA 'NOTA_CREDITO'
-IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'transacciones.FACTURA') AND type in (N'U'))
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'transacciones.NOTA_CREDITO') AND type in (N'U'))
 BEGIN
     CREATE TABLE transacciones.NOTA_CREDITO (
 		id INT IDENTITY(1, 1) CONSTRAINT PK_NOTA_CREDITO_ID PRIMARY KEY,        
