@@ -27,6 +27,7 @@ BEGIN
     );
 END;
 
+
 --CREAMOS LA TABLA 'TIPO'
 IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'aurora.TIPO') AND type in (N'U'))
 BEGIN
@@ -212,5 +213,4 @@ BEGIN
 END;
 GO
 
-use clase_2
 
