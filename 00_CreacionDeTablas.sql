@@ -132,7 +132,7 @@ END;
 IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'aurora.FACTURA') AND type in (N'U'))
 BEGIN
     CREATE TABLE aurora.NOTA_CREDITO (
-		id_producto INT IDENTITY(1, 1) CONSTRAINT PK_PRODUCTO_ID PRIMARY KEY,        
+		id INT IDENTITY(1, 1) CONSTRAINT PK_NOTA_CREDITO_ID PRIMARY KEY,        
 		monto DECIMAL (10, 2),
 		id_factura CHAR(11) CHECK (id_factura LIKE '[0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9][0-9][0-9]'),
 		CONSTRAINT FK_ID_FACTURA FOREIGN KEY (id_factura) REFERENCES aurora.FACTURA(id)
