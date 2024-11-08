@@ -72,7 +72,7 @@ BEGIN
 
     IF @EstadoFactura = 'pagada'
     BEGIN
-        INSERT INTO transacciones.NOTA_CREDITO (factura_id, monto)
+        INSERT INTO transacciones.NOTA_CREDITO (id_factura, monto)
         VALUES (@FacturaID, @MontoCredito);
 
         PRINT 'Nota de crédito generada con éxito.';

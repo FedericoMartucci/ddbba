@@ -48,7 +48,8 @@ IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'seguridad
 BEGIN
     CREATE TABLE seguridad.CATEGORIA (
         id INT IDENTITY (1, 1) CONSTRAINT PK_CATEGORIA_ID PRIMARY KEY,
-        descripcion VARCHAR(50)
+        descripcion VARCHAR(50),
+		esValido BIT NOT NULL DEFAULT 1,
     );
 END;
 
@@ -106,6 +107,7 @@ BEGIN
         id_cargo INT,
 		id_sucursal INT,
         turno VARCHAR(50),
+		esValido BIT NOT NULL DEFAULT 1,
         CONSTRAINT FK_ID_CARGO_EMPLEADO_CARGO FOREIGN KEY (id_cargo) REFERENCES seguridad.CARGO(id),
 		CONSTRAINT FK_ID_SUCURSAL_EMPLEADO_SUCURSAL FOREIGN KEY (id_sucursal) REFERENCES seguridad.SUCURSAL(id)
     );
@@ -126,6 +128,7 @@ BEGIN
 		id_categoria INT,
 		fecha_creacion DATE NOT NULL DEFAULT GETDATE(),
 		fecha_eliminacion DATE,
+		esValido BIT NOT NULL DEFAULT 1,
 		CONSTRAINT FK_ID_CATEGORIA_PRODUCTO_CATEGORIA FOREIGN KEY (id_categoria) REFERENCES seguridad.CATEGORIA(id)
     );
 END;
