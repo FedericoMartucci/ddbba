@@ -136,8 +136,61 @@ BEGIN
 		RAISERROR ('Error raised in TRY block.', 16, 1 );
 	ELSE
 		PRINT @todoOK + 'cargar archivo vacio.'
+END
 
+GO
 
+CREATE OR ALTER PROCEDURE inserciones.TestInsertarMediosDePago
+	@pathCaso1 VARCHAR(255), 
+	@pathCaso2 VARCHAR(255),  
+	@pathCaso3 VARCHAR(255) 
+AS
+BEGIN
+	DECLARE @cantidadDeFilasAntesEnMediosDePago INT;
+	DECLARE @cantidadDeFilasDespuesEnMediosDePago INT;
+	DECLARE @todoOK VARCHAR(62) = 'SP InsertarMediosDePago funciona correctamente para el caso ';
+
+	--CASO 1: volver a cargar mismo archivo
+	SELECT * FROM transacciones.MEDIO_DE_PAGO
+	SET @cantidadDeFilasAntesEnMediosDePago = (SELECT COUNT(1) FROM transacciones.MEDIO_DE_PAGO)
+	
+	EXEC inserciones.InsertarMediosDePago @pathCaso1
+	
+	SELECT * FROM transacciones.MEDIO_DE_PAGO
+	SET @cantidadDeFilasDespuesEnMediosDePago = (SELECT COUNT(1) FROM transacciones.MEDIO_DE_PAGO)
+	
+	IF(@cantidadDeFilasAntesEnMediosDePago <> @cantidadDeFilasDespuesEnMediosDePago)
+		RAISERROR ('Error raised in TRY block.', 16, 1 );
+	ELSE
+		PRINT @todoOK + 'volver a cargar mismo archivo.'
+	
+	--CASO 2: volver a cargar mismo archivo con tuplas extra distintas.
+	SELECT * FROM transacciones.MEDIO_DE_PAGO
+	SET @cantidadDeFilasAntesEnMediosDePago = (SELECT COUNT(1) FROM transacciones.MEDIO_DE_PAGO)
+	
+	EXEC inserciones.InsertarMediosDePago @pathCaso2
+	
+	SELECT * FROM transacciones.MEDIO_DE_PAGO
+	SET @cantidadDeFilasDespuesEnMediosDePago = (SELECT COUNT(1) FROM transacciones.MEDIO_DE_PAGO)
+	
+	IF(@cantidadDeFilasAntesEnMediosDePago <> @cantidadDeFilasDespuesEnMediosDePago)
+		RAISERROR ('Error raised in TRY block.', 16, 1 );
+	ELSE
+		PRINT @todoOK + 'volver a cargar mismo archivo con tuplas extra distintas.'
+	
+	--CASO 3: cargar archivo vacio.
+	SELECT * FROM transacciones.MEDIO_DE_PAGO
+	SET @cantidadDeFilasAntesEnMediosDePago = (SELECT COUNT(1) FROM transacciones.MEDIO_DE_PAGO)
+	
+	EXEC inserciones.InsertarMediosDePago @pathCaso3
+	
+	SELECT * FROM transacciones.MEDIO_DE_PAGO
+	SET @cantidadDeFilasDespuesEnMediosDePago = (SELECT COUNT(1) FROM transacciones.MEDIO_DE_PAGO)
+	
+	IF(@cantidadDeFilasAntesEnMediosDePago <> @cantidadDeFilasDespuesEnMediosDePago)
+		RAISERROR ('Error raised in TRY block.', 16, 1 );
+	ELSE
+		PRINT @todoOK + 'cargar archivo vacio.'
 END
 
 GO
@@ -156,6 +209,7 @@ EXEC inserciones.TestInsertarEmpleados
 @pathCaso2, 
 @pathCaso3;
 
---EXEC inserciones.InsertarMediosDePago @pathCaso3
-EXEC inserciones.InsertarMediosDePago @pathInformacionComplementaria
-SELECT * FROM transacciones.MEDIO_DE_PAGO
+EXEC inserciones.TestInsertarMediosDePago
+@pathInformacionComplementaria, 
+@pathCaso2, 
+@pathCaso3;
