@@ -101,6 +101,43 @@ BEGIN
 	ELSE
 		PRINT @todoOK + 'volver a cargar mismo archivo.'
 
+	--CASO 2: volver a cargar mismo archivo con tuplas extra distintas.
+	SELECT * FROM seguridad.CARGO
+	SELECT * FROM seguridad.EMPLEADO
+	SET @cantidadDeFilasAntesEnCargo = (SELECT COUNT(1) FROM seguridad.CARGO)
+	SET @cantidadDeFilasAntesEnEmpleado = (SELECT COUNT(1) FROM seguridad.EMPLEADO)
+
+	EXEC inserciones.InsertarEmpleados @pathCaso2;
+
+	SELECT * FROM seguridad.CARGO
+	SELECT * FROM seguridad.EMPLEADO
+	SET @cantidadDeFilasDespuesEnCargo = (SELECT COUNT(1) FROM seguridad.CARGO)
+	SET @cantidadDeFilasDespuesEnEmpleado = (SELECT COUNT(1) FROM seguridad.EMPLEADO)
+
+	IF(@cantidadDeFilasAntesEnCargo <> @cantidadDeFilasDespuesEnCargo OR @cantidadDeFilasAntesEnEmpleado <> @cantidadDeFilasDespuesEnEmpleado)
+		RAISERROR ('Error raised in TRY block.', 16, 1 );
+	ELSE
+		PRINT @todoOK + 'volver a cargar mismo archivo con tuplas extra distintas.'
+	
+	--CASO 3: cargar archivo vacio.
+	SELECT * FROM seguridad.CARGO
+	SELECT * FROM seguridad.EMPLEADO
+	SET @cantidadDeFilasAntesEnCargo = (SELECT COUNT(1) FROM seguridad.CARGO)
+	SET @cantidadDeFilasAntesEnEmpleado = (SELECT COUNT(1) FROM seguridad.EMPLEADO)
+
+	EXEC inserciones.InsertarEmpleados @pathCaso3;
+
+	SELECT * FROM seguridad.CARGO
+	SELECT * FROM seguridad.EMPLEADO
+	SET @cantidadDeFilasDespuesEnCargo = (SELECT COUNT(1) FROM seguridad.CARGO)
+	SET @cantidadDeFilasDespuesEnEmpleado = (SELECT COUNT(1) FROM seguridad.EMPLEADO)
+
+	IF(@cantidadDeFilasAntesEnCargo <> @cantidadDeFilasDespuesEnCargo OR @cantidadDeFilasAntesEnEmpleado <> @cantidadDeFilasDespuesEnEmpleado)
+		RAISERROR ('Error raised in TRY block.', 16, 1 );
+	ELSE
+		PRINT @todoOK + 'cargar archivo vacio.'
+
+
 END
 
 GO
@@ -119,3 +156,6 @@ EXEC inserciones.TestInsertarEmpleados
 @pathCaso2, 
 @pathCaso3;
 
+--EXEC inserciones.InsertarMediosDePago @pathCaso3
+EXEC inserciones.InsertarMediosDePago @pathInformacionComplementaria
+SELECT * FROM transacciones.MEDIO_DE_PAGO
