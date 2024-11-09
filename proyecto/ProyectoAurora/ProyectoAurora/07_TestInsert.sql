@@ -1,7 +1,7 @@
 USE Com5600G08
 GO
 SET NOCOUNT ON
-
+GO
 CREATE OR ALTER PROCEDURE inserciones.TestInsertarSucursales
 	@pathCaso1 VARCHAR(255), 
 	@pathCaso2 VARCHAR(255),  
@@ -69,7 +69,53 @@ BEGIN
 		PRINT @todoOK + 'cargar archivo vacio.'
 END
 
+GO
+
+CREATE OR ALTER PROCEDURE inserciones.TestInsertarEmpleados
+	@pathCaso1 VARCHAR(255), 
+	@pathCaso2 VARCHAR(255),  
+	@pathCaso3 VARCHAR(255) 
+AS
+BEGIN
+	DECLARE @cantidadDeFilasAntesEnCargo INT;
+	DECLARE @cantidadDeFilasAntesEnEmpleado INT;
+	DECLARE @cantidadDeFilasDespuesEnCargo INT;
+	DECLARE @cantidadDeFilasDespuesEnEmpleado INT;
+	DECLARE @todoOK VARCHAR(60) = 'SP InsertarEmpleados funciona correctamente para el caso ';
+
+	--CASO 1: volver a cargar mismo archivo
+	SELECT * FROM seguridad.CARGO
+	SELECT * FROM seguridad.EMPLEADO
+	SET @cantidadDeFilasAntesEnCargo = (SELECT COUNT(1) FROM seguridad.CARGO)
+	SET @cantidadDeFilasAntesEnEmpleado = (SELECT COUNT(1) FROM seguridad.EMPLEADO)
+
+	EXEC inserciones.InsertarEmpleados @pathCaso1;
+
+	SELECT * FROM seguridad.CARGO
+	SELECT * FROM seguridad.EMPLEADO
+	SET @cantidadDeFilasDespuesEnCargo = (SELECT COUNT(1) FROM seguridad.CARGO)
+	SET @cantidadDeFilasDespuesEnEmpleado = (SELECT COUNT(1) FROM seguridad.EMPLEADO)
+
+	IF(@cantidadDeFilasAntesEnCargo <> @cantidadDeFilasDespuesEnCargo OR @cantidadDeFilasAntesEnEmpleado <> @cantidadDeFilasDespuesEnEmpleado)
+		RAISERROR ('Error raised in TRY block.', 16, 1 );
+	ELSE
+		PRINT @todoOK + 'volver a cargar mismo archivo.'
+
+END
+
+GO
+
+DECLARE @pathInformacionComplementaria VARCHAR(255) = 'C:\Users\PC\Desktop\ddbba\Informacion_complementaria.xlsx';
+DECLARE @pathCaso2 VARCHAR(255) = 'C:\Users\PC\Desktop\ddbba\test-caso2-insert.xlsx';
+DECLARE @pathCaso3 VARCHAR(255) = 'C:\Users\PC\Desktop\ddbba\test-caso3-insert.xlsx';
+
 EXEC inserciones.TestInsertarSucursales
-'C:\Users\PC\Desktop\ddbba\Informacion_complementaria.xlsx',
-'C:\Users\PC\Desktop\ddbba\test_sucursal1.xlsx',
-'C:\Users\PC\Desktop\ddbba\test_sucursal2.xlsx'
+@pathInformacionComplementaria,
+@pathCaso2,
+@pathCaso3;
+
+EXEC inserciones.TestInsertarEmpleados
+@pathInformacionComplementaria, 
+@pathCaso2, 
+@pathCaso3;
+
