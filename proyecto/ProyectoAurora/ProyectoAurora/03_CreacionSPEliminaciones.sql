@@ -6,7 +6,7 @@ IF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = 'borrado')
     EXEC('CREATE SCHEMA borrado');
 GO
 
--- Store Procedure para eliminaci贸n l贸gica en CATEGORIA (con borrado en cascada en PRODUCTO)
+-- Store Procedure para eliminaci髇 l骻ica en CATEGORIA (con borrado en cascada en PRODUCTO)
 CREATE OR ALTER PROCEDURE borrado.EliminarCategoriaLogico
     @id_categoria INT
 AS
@@ -14,12 +14,12 @@ BEGIN
     BEGIN TRANSACTION;
 
     BEGIN TRY
-        -- Borrado l贸gico en la tabla 'CATEGORIA'
+        -- Borrado l骻ico en la tabla 'CATEGORIA'
         UPDATE seguridad.CATEGORIA
         SET esValido = 0
         WHERE id = @id_categoria;
 
-        -- Borrado l贸gico en cascada en la tabla 'PRODUCTO'
+        -- Borrado l骻ico en cascada en la tabla 'PRODUCTO'
         UPDATE productos.PRODUCTO
         SET esValido = 0
         WHERE id_categoria = @id_categoria;
@@ -33,7 +33,7 @@ BEGIN
 END;
 GO
 
--- Store Procedure para eliminaci贸n f铆sica en CARGO
+-- Store Procedure para eliminaci髇 f韘ica en CARGO
 CREATE OR ALTER PROCEDURE borrado.EliminarCargoFisico
     @id_cargo INT
 AS
@@ -43,7 +43,7 @@ BEGIN
 END;
 GO
 
--- Store Procedure para eliminaci贸n f铆sica en SUCURSAL
+-- Store Procedure para eliminaci髇 f韘ica en SUCURSAL
 CREATE OR ALTER PROCEDURE borrado.EliminarSucursalFisico
     @id_sucursal INT
 AS
@@ -53,7 +53,7 @@ BEGIN
 END;
 GO
 
--- Store Procedure para eliminaci贸n f铆sica en TELEFONO
+-- Store Procedure para eliminaci髇 f韘ica en TELEFONO
 CREATE OR ALTER PROCEDURE borrado.EliminarTelefonoFisico
     @id_sucursal INT
 AS
@@ -63,7 +63,7 @@ BEGIN
 END;
 GO
 
--- Store Procedure para eliminaci贸n l贸gica en EMPLEADO
+-- Store Procedure para eliminaci髇 l骻ica en EMPLEADO
 CREATE OR ALTER PROCEDURE borrado.EliminarEmpleadoLogico
     @legajo INT
 AS
@@ -74,7 +74,7 @@ BEGIN
 END;
 GO
 
--- Store Procedure para eliminaci贸n f铆sica en CARGO
+-- Store Procedure para eliminaci髇 f韘ica en CARGO
 CREATE OR ALTER PROCEDURE borrado.EliminarNotaCreditoFisico
     @id INT
 AS
@@ -84,7 +84,7 @@ BEGIN
 END;
 GO
 
--- Store Procedure para eliminaci贸n f铆sica en FACTURA
+-- Store Procedure para eliminaci髇 f韘ica en FACTURA
 CREATE OR ALTER PROCEDURE borrado.EliminarFacturaFisico
     @id_factura CHAR(11)
 AS
@@ -94,7 +94,7 @@ BEGIN
 END;
 GO
 
--- Store Procedure para eliminaci贸n f铆sica en MEDIO_DE_PAGO
+-- Store Procedure para eliminaci髇 f韘ica en MEDIO_DE_PAGO
 CREATE OR ALTER PROCEDURE borrado.EliminarMedioDePagoFisico
     @id_medio INT
 AS
@@ -104,7 +104,7 @@ BEGIN
 END;
 GO
 
--- Store Procedure para eliminaci贸n f铆sica en VENTA
+-- Store Procedure para eliminaci髇 f韘ica en VENTA
 CREATE OR ALTER PROCEDURE borrado.EliminarVentaFisico
     @id_venta INT
 AS
@@ -114,7 +114,7 @@ BEGIN
 END;
 GO
 
--- Store Procedure para eliminaci贸n f铆sica en IMPORTADO
+-- Store Procedure para eliminaci髇 f韘ica en IMPORTADO
 CREATE OR ALTER PROCEDURE borrado.EliminarImportadoFisico
     @id_producto INT
 AS
@@ -124,7 +124,7 @@ BEGIN
 END;
 GO
 
--- Store Procedure para eliminaci贸n f铆sica en VARIOS
+-- Store Procedure para eliminaci髇 f韘ica en VARIOS
 CREATE OR ALTER PROCEDURE borrado.EliminarVariosFisico
     @id_producto INT
 AS
@@ -134,7 +134,7 @@ BEGIN
 END;
 GO
 
--- Store Procedure para eliminaci贸n f铆sica en ELECTRONICO
+-- Store Procedure para eliminaci髇 f韘ica en ELECTRONICO
 CREATE OR ALTER PROCEDURE borrado.EliminarElectronicoFisico
     @id_producto INT
 AS
@@ -144,7 +144,7 @@ BEGIN
 END;
 GO
 
--- Store Procedure para eliminaci贸n l贸gica en PRODUCTO
+-- Store Procedure para eliminaci髇 l骻ica en PRODUCTO
 CREATE OR ALTER PROCEDURE borrado.EliminarProductoLogico
     @id_producto INT
 AS

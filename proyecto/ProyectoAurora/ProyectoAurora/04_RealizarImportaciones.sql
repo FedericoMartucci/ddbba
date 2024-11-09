@@ -1,11 +1,11 @@
 --CARGAMOS TODOS LOS DATOS DE LOS ARCHIVOS Y MOSTRAMOS
 USE Com5600G08
 
-DECLARE @pathVentasRegistradas VARCHAR(255) = 'C:\Users\User\Desktop\ddbba\Ventas_registradas.csv';
-DECLARE @pathInformacionComplementaria VARCHAR(255) = 'C:\Users\User\Desktop\ddbba\Informacion_complementaria.xlsx';
-DECLARE @pathCatalogo VARCHAR(255) = 'C:\Users\User\Desktop\ddbba';
-DECLARE @pathProductosElectronicos VARCHAR(255) = 'C:\Users\User\Desktop\ddbba\Electronic accessories.xlsx';
-DECLARE @pathProductosImportados VARCHAR(255) = 'C:\Users\User\Desktop\ddbba\Productos_importados.xlsx'
+DECLARE @pathVentasRegistradas VARCHAR(255) = 'C:\Users\PC\Desktop\ddbba\Ventas_registradas.csv';
+DECLARE @pathInformacionComplementaria VARCHAR(255) = 'C:\Users\PC\Desktop\ddbba\Informacion_complementaria.xlsx';
+DECLARE @pathCatalogo VARCHAR(255) = 'C:\Users\PC\Desktop\ddbba';
+DECLARE @pathProductosElectronicos VARCHAR(255) = 'C:\Users\PC\Desktop\ddbba\Electronic accessories.xlsx';
+DECLARE @pathProductosImportados VARCHAR(255) = 'C:\Users\PC\Desktop\ddbba\Productos_importados.xlsx'
 
 EXEC inserciones.InsertarSucursales @pathInformacionComplementaria;
 EXEC inserciones.InsertarEmpleados @pathInformacionComplementaria;

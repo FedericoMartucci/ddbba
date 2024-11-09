@@ -7,7 +7,7 @@ IF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = 'actualizaciones')
 GO
 
 -- Stored Procedure para actualizar la tabla CARGO
-CREATE OR ALTER PROCEDURE actualizaciones.ActualzarCargo
+CREATE OR ALTER PROCEDURE actualizaciones.ActualizarCargo
     @id INT,
     @nombre VARCHAR(100)
 AS
