@@ -1,12 +1,27 @@
+/*
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+#               Bases de Datos Aplicadas					#
+#															#
+#   Script Nro: 1											#
+#															#
+#   Integrantes:											#
+#															#
+#       Brocani, Agustin					40.931.870      #
+#		Caruso Dellisanti, Carolina Belen	40.129.448		#
+#       Martucci, Federico Ariel			44.690.247      #
+#		Rivera, Victor						44.258.557		#
+#															#
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+*/
 --CREAMOS LOS PROCEDURE NECESARIOS PARA LEVANTAR LOS ARCHIVOS QUE RECIBIMOS
 USE Com5600G08
 GO
 
 --CONFIGURACIONES PARA LA IMPORTACION
--- Habilita la visualización de opciones avanzadas en la configuración del motor
+-- Habilita la visualizaciÃ³n de opciones avanzadas en la configuraciÃ³n del motor
 EXEC sp_configure 'show advanced options', 1;
 RECONFIGURE;
---Habilitamos el 'Ole Automation Procedures' para permitir al motor ejecutar comandos de automatización de objetos
+--Habilitamos el 'Ole Automation Procedures' para permitir al motor ejecutar comandos de automatizaciÃ³n de objetos
 EXEC sp_configure 'Ole Automation Procedures', 1;    
 RECONFIGURE;
 -- Volvemos a ocultar las opciones avanzadas para evitar cambios accidentales en configuraciones avanzadas
@@ -35,14 +50,14 @@ BEGIN
         telefono CHAR(9) CHECK (telefono LIKE '[0-9][0-9][0-9][0-9]-[0-9][0-9][0-9][0-9]')
     );
 
-	 -- Armar el comando dinámico para OPENROWSET con el path
+	 -- Armar el comando dinÃ¡mico para OPENROWSET con el path
     DECLARE @sql NVARCHAR(MAX);
     SET @sql = N'INSERT INTO #TEMP_SUCURSAL (ciudad, reemplazar_por, direccion, horario, telefono)
                  SELECT * FROM OPENROWSET(''Microsoft.ACE.OLEDB.16.0'', 
                  ''Excel 12.0; HDR=YES; Database=' + @path + ''', 
                  ''SELECT * FROM [sucursal$]'');';
 
-    -- Ejecutar el comando dinámico
+    -- Ejecutar el comando dinÃ¡mico
     EXEC sp_executesql @sql;
 
 	IF NOT EXISTS ( SELECT TOP 1 1 FROM #TEMP_SUCURSAL 
@@ -63,7 +78,7 @@ BEGIN
     horario,
     ciudad,
     reemplazar_por,
-    LTRIM(RTRIM(REPLACE(LEFT(direccion, CHARINDEX(',', direccion) - 1), ' ', ''))) AS direccion,
+    LTRIM(RTRIM(REPLACE(LEFT(direccion, CHARINDEX(',', direccion) - 1), 'Â ', ''))) AS direccion,
     SUBSTRING(direccion, CHARINDEX(', B', direccion) + 2, 5) AS codigo_postal,
     SUBSTRING(direccion, CHARINDEX('Provincia', direccion) + 13, LEN(direccion)) AS provincia
 	FROM #TEMP_SUCURSAL AS temp
@@ -73,7 +88,7 @@ BEGIN
     WHERE aurora.horario = temp.horario
       AND aurora.ciudad = temp.ciudad
       AND aurora.reemplazar_por = temp.reemplazar_por
-      AND aurora.direccion = LTRIM(RTRIM(REPLACE(LEFT(temp.direccion, CHARINDEX(',', temp.direccion) - 1), ' ', '')))
+      AND aurora.direccion = LTRIM(RTRIM(REPLACE(LEFT(temp.direccion, CHARINDEX(',', temp.direccion) - 1), 'Â ', '')))
       AND aurora.codigo_postal = SUBSTRING(temp.direccion, CHARINDEX(', B', temp.direccion) + 2, 5)
       AND aurora.provincia = SUBSTRING(temp.direccion, CHARINDEX('Provincia', temp.direccion) + 13, LEN(temp.direccion))
 	);
@@ -116,7 +131,7 @@ BEGIN
         turno VARCHAR(50)
     );
 
-	-- Armar el comando dinámico para OPENROWSET con el path
+	-- Armar el comando dinÃ¡mico para OPENROWSET con el path
 	DECLARE @sql NVARCHAR(MAX);
     SET @sql = N'INSERT INTO #TEMP_EMPLEADO (legajo, nombre, apellido, dni, direccion, email_personal, email_empresa, CUIL, cargo, sucursal, turno)
                  SELECT * FROM OPENROWSET(''Microsoft.ACE.OLEDB.16.0'', 
@@ -124,7 +139,7 @@ BEGIN
                  ''SELECT * FROM [Empleados$]'')
 				 WHERE [Legajo/ID] IS NOT NULL;';
 
-    -- Ejecutar el comando dinámico
+    -- Ejecutar el comando dinÃ¡mico
     EXEC sp_executesql @sql;
 
     --Validamos no cargar datos duplicados
@@ -177,7 +192,7 @@ BEGIN
 		descripcion_ingles VARCHAR(50),
 		descripcion VARCHAR(50)
 	);
-	-- Armar el comando dinámico para OPENROWSET con el path
+	-- Armar el comando dinÃ¡mico para OPENROWSET con el path
     DECLARE @sql NVARCHAR(MAX);
 	
     SET @sql = N'INSERT INTO #TEMP_MEDIO_PAGO (descripcion_ingles, descripcion)
@@ -186,7 +201,7 @@ BEGIN
 				 ''Excel 12.0; HDR=YES; Database=' + @path + ''', 
                  ''SELECT * FROM [medios de pago$]'');';
 
-	-- Ejecutar el comando dinámico
+	-- Ejecutar el comando dinÃ¡mico
     EXEC sp_executesql @sql;
 
 	--Validamos que no se carguen duplicados
@@ -224,7 +239,7 @@ BEGIN
     EXEC sp_OACreate 'MSXML2.XMLHTTP', @Object OUT    --Creamos una instancia del objeto OLE, que nos permite hacer los llamados.
     EXEC sp_OAMethod @Object, 'OPEN', NULL, 'GET', @url, 'FALSE' --Definimos algunas propiedades del objeto para hacer una llamada HTTP Get.
     EXEC sp_OAMethod @Object, 'SEND' 
-    EXEC sp_OAMethod @Object, 'RESPONSETEXT', @respuesta OUTPUT --Señalamos donde vamos a guardar la respuesta.
+    EXEC sp_OAMethod @Object, 'RESPONSETEXT', @respuesta OUTPUT --SeÃ±alamos donde vamos a guardar la respuesta.
 
     -- Observe que si el SP devuelve una tabla lo podemos almacenar con INSERT
     INSERT @json 
@@ -238,7 +253,7 @@ GO
 
 /*
 				==============================================================
-				=		Procedure para insertar productos electrónicos		 =
+				=		Procedure para insertar productos electrÃ³nicos		 =
 				==============================================================
 */
 CREATE OR ALTER PROCEDURE inserciones.InsertarProductosElectronicos(@path VARCHAR(255))
@@ -247,20 +262,20 @@ BEGIN
     DECLARE @ret decimal(10,2);
     DECLARE @id_categoria INT;
 	
-	-- Verificar si existe la categoría 'Accesorios Electronicos' y obtener su id
+	-- Verificar si existe la categorÃ­a 'Accesorios Electronicos' y obtener su id
     SET @id_categoria = (SELECT id FROM seguridad.CATEGORIA WHERE descripcion = 'Accesorios Electronicos');
 
-	-- Si la categoría no existe, crear una nueva
+	-- Si la categorÃ­a no existe, crear una nueva
     IF @id_categoria IS NULL
     BEGIN
         INSERT INTO seguridad.CATEGORIA (descripcion)
         VALUES ('Accesorios Electronicos');
 
-		-- Obtener el id de la nueva categoría
+		-- Obtener el id de la nueva categorÃ­a
         SET @id_categoria = SCOPE_IDENTITY();
     END;
 
-	-- Obtiene el valor del dólar en pesos
+	-- Obtiene el valor del dÃ³lar en pesos
     EXEC ObtenerValorDolarCCL @ret OUTPUT;
 
 	-- Crear una tabla temporal para almacenar los datos del archivo de Excel
@@ -269,7 +284,7 @@ BEGIN
         precio_unidad_en_dolares DECIMAL(10, 2)
     );
 
-	-- Armar el comando dinámico para OPENROWSET con el path
+	-- Armar el comando dinÃ¡mico para OPENROWSET con el path
     DECLARE @sql NVARCHAR(MAX);
 
 	-- Cargar datos desde el archivo de Excel en la tabla temporal
@@ -279,11 +294,11 @@ BEGIN
 				 ''Excel 12.0; HDR=YES; Database=' + @path + ''', 
                  ''SELECT * FROM [Sheet1$]'');';
 	
-    -- Ejecutar el comando dinámico
+    -- Ejecutar el comando dinÃ¡mico
     EXEC sp_executesql @sql;
 	
 	-- Insertar en la tabla PRODUCTO utilizando los datos de #TEMP_ELECTRONICOS
-    -- Acáí convertimos el precio en dólares a pesos
+    -- AcÃ¡ convertimos el precio en dÃ³lares a pesos
 	--Validamos no cargar duplicados
 	INSERT INTO productos.PRODUCTO (nombre_producto, precio_unidad, id_categoria)
 	SELECT DISTINCT 
@@ -299,7 +314,7 @@ BEGIN
 		AND p.id_categoria = @id_categoria
 	);
 
-	-- Insertar en la tabla ELECTRONICO utilizando los IDs recién generados en PRODUCTO
+	-- Insertar en la tabla ELECTRONICO utilizando los IDs reciÃ©n generados en PRODUCTO
 	--Validamos que no insertemos duplicados
 	INSERT INTO productos.ELECTRONICO (id_producto, precio_unidad_en_dolares)
 	SELECT DISTINCT 
@@ -322,7 +337,7 @@ GO
 
 /*
 				======================================================================
-				=		Procedure para insertar categorías de productos varios		 =
+				=		Procedure para insertar categorÃ­as de productos varios		 =
 				======================================================================
 */
 CREATE OR ALTER PROCEDURE inserciones.IngresarCategorias @pathCatalogos VARCHAR(255), @pathClasificacion VARCHAR(255)
@@ -337,19 +352,19 @@ BEGIN
 	
 	-- Cargar datos desde el archivo Excel en la tabla temporal #TempCategoriasExcel
 	SET @sql = N'INSERT INTO #TEMP_CATEGORIAS (linea_producto, producto)
-				SELECT [Línea de producto], Producto
+				SELECT [LÃ­nea de producto], Producto
 				FROM OPENROWSET(''Microsoft.ACE.OLEDB.16.0'',
 				''Excel 12.0;HDR=YES;IMEX=1;Database=' + @pathClasificacion + ''', 
 				''SELECT * FROM [Clasificacion productos$]'');';
 
-	-- Ejecutar el comando dinámico
+	-- Ejecutar el comando dinÃ¡mico
     EXEC sp_executesql @sql;
 
-	-- Paso 4: Insertar en la tabla CATEGORIA si la categoría no existe
+	-- Paso 4: Insertar en la tabla CATEGORIA si la categorÃ­a no existe
 	DECLARE @id_categoria INT;
 
-	-- Usar la tabla temporal #TempCategoriasExcel para obtener y asignar las categorías a los productos en #TempCatalogo
-	-- Primero, asegurarse de que todas las categorías necesarias existen en la tabla seguridad.CATEGORIA
+	-- Usar la tabla temporal #TempCategoriasExcel para obtener y asignar las categorÃ­as a los productos en #TempCatalogo
+	-- Primero, asegurarse de que todas las categorÃ­as necesarias existen en la tabla seguridad.CATEGORIA
 	INSERT INTO seguridad.CATEGORIA (descripcion)
 	SELECT DISTINCT 
 		linea_producto
@@ -455,7 +470,7 @@ BEGIN
 
 	EXEC sp_executesql @sql;
 
-	-- Paso 3: Insertar categorías que no existen en la tabla CATEGORIA
+	-- Paso 3: Insertar categorÃ­as que no existen en la tabla CATEGORIA
 	--Validamos no cargar repetidos
 
 	INSERT INTO seguridad.CATEGORIA (descripcion)
@@ -547,14 +562,14 @@ BEGIN
 			WITH
 			(
 				FIELDTERMINATOR = '';'',  -- Separador de campos
-				ROWTERMINATOR = ''\n'',   -- Fin de línea
+				ROWTERMINATOR = ''\n'',   -- Fin de lÃ­nea
 				CODEPAGE = ''65001'',     -- UTF-8
 				FIRSTROW = 2              -- Iniciar desde la fila 2
 			);
 		';
 
 
-		-- Ejecutar el SQL dinámico para el BULK INSERT
+		-- Ejecutar el SQL dinÃ¡mico para el BULK INSERT
 		EXEC sp_executesql @sql;
 
 	END TRY
@@ -576,17 +591,17 @@ BEGIN
 											REPLACE(
 												REPLACE(
 													producto,
-													'Ã¡', 'á'
-												), 'Ã©', 'é'
-											), 'Ã­', 'í'
-										), 'í-', 'í'
-									), 'í³', 'ó'
-								), 'Ã³', 'ó'
-							), 'Ãº', 'ú'
-						), 'íº', 'ú'
-					), 'Ã±', 'ñ'
-				), 'í±', 'ñ'
-			), 'Â', ''
+													'ÃƒÂ¡', 'Ã¡'
+												), 'ÃƒÂ©', 'Ã©'
+											), 'ÃƒÂ­', 'Ã­'
+										), 'Ã­-', 'Ã­'
+									), 'Ã­Â³', 'Ã³'
+								), 'ÃƒÂ³', 'Ã³'
+							), 'ÃƒÂº', 'Ãº'
+						), 'Ã­Âº', 'Ãº'
+					), 'ÃƒÂ±', 'Ã±'
+				), 'Ã­Â±', 'Ã±'
+			), 'Ã‚', ''
 		),
 		identificador_de_pago = CASE
 			WHEN identificador_de_pago = '--' THEN NULL

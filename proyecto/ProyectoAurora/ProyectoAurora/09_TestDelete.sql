@@ -1,3 +1,18 @@
+/*
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+#               Bases de Datos Aplicadas					#
+#															#
+#   Script Nro: 9											#
+#															#
+#   Integrantes:											#
+#															#
+#       Brocani, Agustin					40.931.870      #
+#		Caruso Dellisanti, Carolina Belen	40.129.448		#
+#       Martucci, Federico Ariel			44.690.247      #
+#		Rivera, Victor						44.258.557		#
+#															#
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+*/
 USE Com5600G08;
 
 GO
@@ -33,29 +48,29 @@ BEGIN
     -- CASO 1: ESTA EJECUCION DEBE SER EXITOSA
     EXEC borrado.EliminarCategoriaLogico @id_categoria = @id_categoria;
 
-    -- COMPRUEBO SI LA CATEGORIA SE ELIMIN” DE FORMA LOGICA CORRECTAMENTE
+    -- COMPRUEBO SI LA CATEGORIA SE ELIMIN√ì DE FORMA LOGICA CORRECTAMENTE
     SELECT @esValidoCategoria = esValido FROM seguridad.CATEGORIA WHERE id = @id_categoria;
     IF (@esValidoCategoria = 0)
-        PRINT 'CATEGORÕA ELIMINADA DE FORMA L”GICA CORRECTAMENTE.';
+        PRINT 'CATEGOR√çA ELIMINADA DE FORMA L√ìGICA CORRECTAMENTE.';
     ELSE
-        PRINT 'ERROR - LA CATEGORÕA NO FUE ELIMINADA DE FORMA L”GICA CORRECTAMENTE.';
+        PRINT 'ERROR - LA CATEGOR√çA NO FUE ELIMINADA DE FORMA L√ìGICA CORRECTAMENTE.';
 
-    -- COMPRUEBO SI LOS PRODUCTOS SE ELIMINARON DE FORMA L”GICA CORRECTAMENTE
+    -- COMPRUEBO SI LOS PRODUCTOS SE ELIMINARON DE FORMA L√ìGICA CORRECTAMENTE
     SELECT @esValidoProducto1 = esValido FROM productos.PRODUCTO WHERE id_producto = 1;
     SELECT @esValidoProducto2 = esValido FROM productos.PRODUCTO WHERE id_producto = 2;
 
     IF (@esValidoProducto1 = 0 AND @esValidoProducto2 = 0)
-        PRINT 'PRODUCTOS DE ESA CATEGORÕA ELIMINADOS DE FORMA L”GICA CORRECTAMENTE.';
+        PRINT 'PRODUCTOS DE ESA CATEGOR√çA ELIMINADOS DE FORMA L√ìGICA CORRECTAMENTE.';
     ELSE
-        PRINT 'ERROR - PRODUCTOS DE ESA CATEGORÕA NO FUERON ELIMINADOS CORRECTAMENTE.';
+        PRINT 'ERROR - PRODUCTOS DE ESA CATEGOR√çA NO FUERON ELIMINADOS CORRECTAMENTE.';
 
-    -- INTENTO BORRAR UNA CATEGORÕA INEXISTENTE
+    -- INTENTO BORRAR UNA CATEGOR√çA INEXISTENTE
     BEGIN TRY
         EXEC borrado.EliminarCategoriaLogico @id_categoria = 999;
-        PRINT 'NO SE GENER” ERROR AL ELIMINAR UNA CATEGORÕA INEXISTENTE.';
+        PRINT 'NO SE GENER√ì ERROR AL ELIMINAR UNA CATEGOR√çA INEXISTENTE.';
     END TRY
     BEGIN CATCH
-        PRINT 'ERROR - SE GENER” UNA EXCEPCI”N AL ELIMINAR UNA CATEGORÕA INEXISTENTE.';
+        PRINT 'ERROR - SE GENER√ì UNA EXCEPCI√ìN AL ELIMINAR UNA CATEGOR√çA INEXISTENTE.';
     END CATCH;
 
 	SELECT * FROM seguridad.CATEGORIA WHERE id = @id_categoria;

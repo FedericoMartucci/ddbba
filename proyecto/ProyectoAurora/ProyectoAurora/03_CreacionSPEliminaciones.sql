@@ -1,3 +1,18 @@
+/*
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+#               Bases de Datos Aplicadas					#
+#															#
+#   Script Nro: 3											#
+#															#
+#   Integrantes:											#
+#															#
+#       Brocani, Agustin					40.931.870      #
+#		Caruso Dellisanti, Carolina Belen	40.129.448		#
+#       Martucci, Federico Ariel			44.690.247      #
+#		Rivera, Victor						44.258.557		#
+#															#
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+*/
 USE Com5600G08
 GO
 
@@ -6,7 +21,7 @@ IF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = 'borrado')
     EXEC('CREATE SCHEMA borrado');
 GO
 
--- Store Procedure para eliminaci髇 l骻ica en CATEGORIA (con borrado en cascada en PRODUCTO)
+-- Store Procedure para eliminaci贸n l贸gica en CATEGORIA (con borrado en cascada en PRODUCTO)
 CREATE OR ALTER PROCEDURE borrado.EliminarCategoriaLogico
     @id_categoria INT
 AS
@@ -14,12 +29,12 @@ BEGIN
     BEGIN TRANSACTION;
 
     BEGIN TRY
-        -- Borrado l骻ico en la tabla 'CATEGORIA'
+        -- Borrado l贸gico en la tabla 'CATEGORIA'
         UPDATE seguridad.CATEGORIA
         SET esValido = 0
         WHERE id = @id_categoria;
 
-        -- Borrado l骻ico en cascada en la tabla 'PRODUCTO'
+        -- Borrado l贸gico en cascada en la tabla 'PRODUCTO'
         UPDATE productos.PRODUCTO
         SET esValido = 0
         WHERE id_categoria = @id_categoria;
@@ -33,7 +48,7 @@ BEGIN
 END;
 GO
 
--- Store Procedure para eliminaci髇 f韘ica en CARGO
+-- Store Procedure para eliminaci贸n f铆sica en CARGO
 CREATE OR ALTER PROCEDURE borrado.EliminarCargoFisico
     @id_cargo INT
 AS
@@ -43,7 +58,7 @@ BEGIN
 END;
 GO
 
--- Store Procedure para eliminaci髇 f韘ica en SUCURSAL
+-- Store Procedure para eliminaci贸n f铆sica en SUCURSAL
 CREATE OR ALTER PROCEDURE borrado.EliminarSucursalFisico
     @id_sucursal INT
 AS
@@ -53,7 +68,7 @@ BEGIN
 END;
 GO
 
--- Store Procedure para eliminaci髇 f韘ica en TELEFONO
+-- Store Procedure para eliminaci贸n f铆sica en TELEFONO
 CREATE OR ALTER PROCEDURE borrado.EliminarTelefonoFisico
     @id_sucursal INT
 AS
@@ -63,7 +78,7 @@ BEGIN
 END;
 GO
 
--- Store Procedure para eliminaci髇 l骻ica en EMPLEADO
+-- Store Procedure para eliminaci贸n l贸gica en EMPLEADO
 CREATE OR ALTER PROCEDURE borrado.EliminarEmpleadoLogico
     @legajo INT
 AS
@@ -74,7 +89,7 @@ BEGIN
 END;
 GO
 
--- Store Procedure para eliminaci髇 f韘ica en CARGO
+-- Store Procedure para eliminaci贸n f铆sica en CARGO
 CREATE OR ALTER PROCEDURE borrado.EliminarNotaCreditoFisico
     @id INT
 AS
@@ -84,7 +99,7 @@ BEGIN
 END;
 GO
 
--- Store Procedure para eliminaci髇 f韘ica en FACTURA
+-- Store Procedure para eliminaci贸n f铆sica en FACTURA
 CREATE OR ALTER PROCEDURE borrado.EliminarFacturaFisico
     @id_factura CHAR(11)
 AS
@@ -94,7 +109,7 @@ BEGIN
 END;
 GO
 
--- Store Procedure para eliminaci髇 f韘ica en MEDIO_DE_PAGO
+-- Store Procedure para eliminaci贸n f铆sica en MEDIO_DE_PAGO
 CREATE OR ALTER PROCEDURE borrado.EliminarMedioDePagoFisico
     @id_medio INT
 AS
@@ -104,7 +119,7 @@ BEGIN
 END;
 GO
 
--- Store Procedure para eliminaci髇 f韘ica en VENTA
+-- Store Procedure para eliminaci贸n f铆sica en VENTA
 CREATE OR ALTER PROCEDURE borrado.EliminarVentaFisico
     @id_venta INT
 AS
@@ -114,7 +129,7 @@ BEGIN
 END;
 GO
 
--- Store Procedure para eliminaci髇 f韘ica en IMPORTADO
+-- Store Procedure para eliminaci贸n f铆sica en IMPORTADO
 CREATE OR ALTER PROCEDURE borrado.EliminarImportadoFisico
     @id_producto INT
 AS
@@ -124,7 +139,7 @@ BEGIN
 END;
 GO
 
--- Store Procedure para eliminaci髇 f韘ica en VARIOS
+-- Store Procedure para eliminaci贸n f铆sica en VARIOS
 CREATE OR ALTER PROCEDURE borrado.EliminarVariosFisico
     @id_producto INT
 AS
@@ -134,7 +149,7 @@ BEGIN
 END;
 GO
 
--- Store Procedure para eliminaci髇 f韘ica en ELECTRONICO
+-- Store Procedure para eliminaci贸n f铆sica en ELECTRONICO
 CREATE OR ALTER PROCEDURE borrado.EliminarElectronicoFisico
     @id_producto INT
 AS
@@ -144,7 +159,7 @@ BEGIN
 END;
 GO
 
--- Store Procedure para eliminaci髇 l骻ica en PRODUCTO
+-- Store Procedure para eliminaci贸n l贸gica en PRODUCTO
 CREATE OR ALTER PROCEDURE borrado.EliminarProductoLogico
     @id_producto INT
 AS

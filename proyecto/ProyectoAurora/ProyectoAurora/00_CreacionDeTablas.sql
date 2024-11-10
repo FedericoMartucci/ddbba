@@ -1,5 +1,19 @@
+/*
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+#               Bases de Datos Aplicadas					#
+#															#
+#   Script Nro: 0											#
+#															#
+#   Integrantes:											#
+#															#
+#       Brocani, Agustin					40.931.870      #
+#		Caruso Dellisanti, Carolina Belen	40.129.448		#
+#       Martucci, Federico Ariel			44.690.247      #
+#		Rivera, Victor						44.258.557		#
+#															#
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+*/
 -- CREACION DE LA BASE DE DATOS 'Com5600G08'
-
 IF NOT EXISTS (SELECT * FROM sys.databases WHERE name = 'Com5600G08')
 BEGIN
     CREATE DATABASE Com5600G08;
@@ -20,7 +34,7 @@ IF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = 'productos')
 
 /*
 				==============================================================
-				=	 CreaciÛn de las tablas dentro del schema seguridad		 =
+				=	 Creaci√≥n de las tablas dentro del schema seguridad		 =
 				==============================================================
 */
 --CREAMOS LA TABLA 'CARGO' SI NO EXISTE PREVIAMENTE, LA MISMA METODOLOGIA SE APLICA AL RESTO DE LAS TABLAS
@@ -33,7 +47,7 @@ BEGIN
 END;
 
 
---CREAMOS LA TABLA 'TIPO' que tendr· los distintos tipos de cliente
+--CREAMOS LA TABLA 'TIPO' que tendr√° los distintos tipos de cliente
 IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'seguridad.TIPO') AND type in (N'U'))
 BEGIN
     CREATE TABLE seguridad.TIPO (
@@ -115,7 +129,7 @@ END;
 
 /*
 				=============================================================
-				=	 CreaciÛn de las tablas dentro del schema productos		=
+				=	 Creaci√≥n de las tablas dentro del schema productos		=
 				=============================================================
 */
 --CREAMOS LA TABLA 'PRODUCTO'
@@ -172,7 +186,7 @@ GO
 
 /*
 				===============================================================
-				=	 CreaciÛn de las tablas dentro del schema transacciones	  =
+				=	 Creaci√≥n de las tablas dentro del schema transacciones	  =
 				===============================================================
 */
 --CREAMOS LA TABLA 'FACTURA'

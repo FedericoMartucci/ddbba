@@ -1,11 +1,26 @@
+/*
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+#               Bases de Datos Aplicadas					#
+#															#
+#   Script Nro: 5											#
+#															#
+#   Integrantes:											#
+#															#
+#       Brocani, Agustin					40.931.870      #
+#		Caruso Dellisanti, Carolina Belen	40.129.448		#
+#       Martucci, Federico Ariel			44.690.247      #
+#		Rivera, Victor						44.258.557		#
+#															#
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+*/
 USE Com5600G08
 GO
 
 --CONFIGURACIONES PARA LA IMPORTACION
--- Habilita la visualización de opciones avanzadas en la configuración del motor
+-- Habilita la visualizaciÃ³n de opciones avanzadas en la configuraciÃ³n del motor
 EXEC sp_configure 'show advanced options', 1;
 RECONFIGURE;
---Habilitamos el 'Ole Automation Procedures' para permitir al motor ejecutar comandos de automatización de objetos
+--Habilitamos el 'Ole Automation Procedures' para permitir al motor ejecutar comandos de automatizaciÃ³n de objetos
 EXEC sp_configure 'Ole Automation Procedures', 1;    
 RECONFIGURE;
 -- Volvemos a ocultar las opciones avanzadas para evitar cambios accidentales en configuraciones avanzadas
@@ -20,16 +35,16 @@ GO
 
 /*
 				=====================================================
-				=	Mensual: ingresando un mes y año determinado	=
-				=	mostrar el total facturado por días de la		=
-				=	semana, incluyendo sábado y domingo.			=
+				=	Mensual: ingresando un mes y aÃ±o determinado	=
+				=	mostrar el total facturado por dÃ­as de la		=
+				=	semana, incluyendo sÃ¡bado y domingo.			=
 				=====================================================
 */
 CREATE OR ALTER PROCEDURE reportes.GenerarInformeXMLFacturacionPorDiaSemana 
     @rutaBase VARCHAR(100), 
     @nombreInforme VARCHAR(50),
     @mes INT,
-    @año INT
+    @aÃ±o INT
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -52,7 +67,7 @@ BEGIN
             productos.PRODUCTO p ON v.id_producto = p.id_producto
         WHERE 
             MONTH(v.fecha) = @mes
-            AND YEAR(v.fecha) = @año
+            AND YEAR(v.fecha) = @aÃ±o
         GROUP BY 
             FORMAT(v.fecha, 'dddd', 'es-ES'), DATEPART(WEEKDAY, v.fecha)
         ORDER BY 
@@ -107,7 +122,7 @@ EXEC reportes.GenerarInformeXMLFacturacionPorDiaSemana
     @rutaBase = 'C:\Users\PC\Desktop\ddbba\reportes', 
     @nombreInforme = 'FacturacionPorDiaSemana', 
     @mes = 3, 
-    @año = 2019;
+    @aÃ±o = 2019;
 GO
 
 /*
@@ -119,7 +134,7 @@ GO
 CREATE OR ALTER PROCEDURE reportes.GenerarInformeXMLFacturacionPorTurnoTrimestral 
     @rutaBase VARCHAR(100), 
     @nombreInforme VARCHAR(50),
-    @año INT,
+    @aÃ±o INT,
     @trimestre INT
 AS
 BEGIN
@@ -132,7 +147,7 @@ BEGIN
                                       + REPLACE(CONVERT(NVARCHAR, GETDATE(), 108), ':', '-') 
                                       + '.xml';
 
-    -- Calcula el primer y último mes del trimestre especificado
+    -- Calcula el primer y Ãºltimo mes del trimestre especificado
     DECLARE @mes_inicio INT = (@trimestre - 1) * 3 + 1;
     DECLARE @mes_fin INT = @mes_inicio + 2;
 
@@ -149,7 +164,7 @@ BEGIN
         JOIN 
             seguridad.EMPLEADO e ON v.legajo = e.legajo
         WHERE 
-            YEAR(v.fecha) = @año
+            YEAR(v.fecha) = @aÃ±o
             AND MONTH(v.fecha) BETWEEN @mes_inicio AND @mes_fin
         GROUP BY 
             e.turno, MONTH(v.fecha)
@@ -202,7 +217,7 @@ GO
 EXEC reportes.GenerarInformeXMLFacturacionPorTurnoTrimestral 
     @rutaBase = 'C:\Users\PC\Desktop\ddbba\reportes', 
     @nombreInforme = 'FacturacionPorTurnoTrimestral', 
-    @año = 2019, 
+    @aÃ±o = 2019, 
     @trimestre = 1;
 GO
 
@@ -393,14 +408,14 @@ GO
 
 /*
 				======================================================================
-				=		Mostrar los 5 productos más vendidos en un mes, por semana.	 =
+				=		Mostrar los 5 productos mÃ¡s vendidos en un mes, por semana.	 =
 				======================================================================
 */
 CREATE OR ALTER PROCEDURE reportes.GenerarInformeXMLTop5ProductosPorSemana
     @rutaBase VARCHAR(100), 
     @nombreInforme VARCHAR(50),
     @mes INT,
-    @año INT
+    @aÃ±o INT
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -425,7 +440,7 @@ BEGIN
             productos.PRODUCTO p ON v.id_producto = p.id_producto
         WHERE 
             MONTH(v.fecha) = @mes 
-            AND YEAR(v.fecha) = @año
+            AND YEAR(v.fecha) = @aÃ±o
         GROUP BY 
             DATEPART(WEEK, v.fecha), p.id_producto, p.nombre_producto
         ORDER BY 
@@ -476,7 +491,7 @@ EXEC reportes.GenerarInformeXMLTop5ProductosPorSemana
     @rutaBase = 'C:\Users\PC\Desktop\ddbba\reportes', 
     @nombreInforme = 'Top5ProductosPorSemana',
     @mes = 3, 
-    @año = 2019;
+    @aÃ±o = 2019;
 GO
 
 /*
