@@ -103,14 +103,14 @@ CREATE OR ALTER PROCEDURE inserciones.InsertarEmpleados(@path VARCHAR(255))	--In
 AS
 BEGIN
     CREATE TABLE #TEMP_EMPLEADO (
-        legajo INT,
-        nombre VARCHAR(50),
-        apellido VARCHAR(50),
-        dni INT,
-        direccion VARCHAR(150),
-        email_empresa VARCHAR(100),
+        legajo INT CONSTRAINT PK_TEMPEMPLEADO_LEGAJO PRIMARY KEY,
+        nombre VARCHAR(50) NOT NULL,
+        apellido VARCHAR(50) NOT NULL,
+        dni INT NOT NULL,
+        direccion VARCHAR(150) NOT NULL,
+        email_empresa VARCHAR(100) NOT NULL,
         email_personal VARCHAR(100),
-        CUIL VARCHAR(11),
+        CUIL CHAR(11),
         cargo VARCHAR(50),
         sucursal VARCHAR(50),
         turno VARCHAR(50)
@@ -126,24 +126,6 @@ BEGIN
 
     -- Ejecutar el comando dinámico
     EXEC sp_executesql @sql;
-
-	IF NOT EXISTS ( SELECT TOP 1 1 FROM #TEMP_EMPLEADO 
-	WHERE 
-	legajo IS NOT NULL OR
-	nombre IS NOT NULL OR
-	apellido IS NOT NULL OR
-	dni IS NOT NULL OR
-	direccion IS NOT NULL OR 
-	email_empresa IS NOT NULL OR
-	email_personal IS NOT NULL OR
-	cargo IS NOT NULL OR
-	sucursal IS NOT NULL OR
-	turno IS NOT NULL
-	)
-    BEGIN
-        EXEC SP_SQLEXEC 'DROP TABLE #TEMP_EMPLEADO;'
-		RETURN;
-    END
 
     --Validamos no cargar datos duplicados
 	INSERT INTO seguridad.CARGO (nombre)

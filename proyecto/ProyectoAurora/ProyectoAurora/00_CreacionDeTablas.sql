@@ -104,9 +104,9 @@ BEGIN
         email_empresa VARCHAR(100) NOT NULL,
         email_personal VARCHAR(100),
         CUIL CHAR(11),
-        id_cargo INT NOT NULL,
-		id_sucursal INT NOT NULL,
-        turno VARCHAR(50) NOT NULL,
+        id_cargo INT,
+		id_sucursal INT,
+        turno VARCHAR(50),
 		esValido BIT NOT NULL DEFAULT 1,
         CONSTRAINT FK_ID_CARGO_EMPLEADO_CARGO FOREIGN KEY (id_cargo) REFERENCES seguridad.CARGO(id),
 		CONSTRAINT FK_ID_SUCURSAL_EMPLEADO_SUCURSAL FOREIGN KEY (id_sucursal) REFERENCES seguridad.SUCURSAL(id)
