@@ -1,7 +1,7 @@
 USE Com5600G08;
 GO
--- PROCEDURE: Configurar Claves de EncriptaciÛn
--- Establece una clave simÈtrica para encriptar los datos sensibles en la tabla EMPLEADO.
+-- PROCEDURE: Configurar Claves de Encriptaci√≥n
+-- Establece una clave sim√©trica para encriptar los datos sensibles en la tabla EMPLEADO.
 -- Incluye una clave maestra y un certificado para cumplir con los requisitos de seguridad.
 CREATE PROCEDURE seguridad.ConfigurarClavesEncriptacion
 AS
@@ -15,13 +15,13 @@ BEGIN
         WITH ALGORITHM = AES_256
         ENCRYPTION BY CERTIFICATE Certificado_Empleados;
 
-        PRINT 'Claves de encriptaciÛn creadas.';
+        PRINT 'Claves de encriptaci√≥n creadas.';
     END
 END;
 GO
 
 -- PROCEDURE: Encriptar Datos de Empleados
--- Encripta los datos sensibles en la tabla EMPLEADO usando la clave simÈtrica configurada previamente.
+-- Encripta los datos sensibles en la tabla EMPLEADO usando la clave sim√©trica configurada previamente.
 CREATE PROCEDURE seguridad.EncriptarDatosEmpleados
 AS
 BEGIN
@@ -35,12 +35,12 @@ BEGIN
         CUIL = ENCRYPTBYKEY(KEY_GUID('Clave_Empleados'), CUIL);
     CLOSE SYMMETRIC KEY Clave_Empleados;
 
-    PRINT 'Datos de empleados encriptados con Èxito.';
+    PRINT 'Datos de empleados encriptados con √©xito.';
 END;
 GO
 
 -- PROCEDURE: Crear Roles y Asignar Permisos
--- Define roles especÌficos y asigna permisos para que solo los Supervisores puedan generar notas de crÈdito.
+-- Define roles espec√≠ficos y asigna permisos para que solo los Supervisores puedan generar notas de cr√©dito.
 CREATE PROCEDURE seguridad.CrearRolesYAsignarPermisos
 AS
 BEGIN
@@ -58,34 +58,34 @@ BEGIN
 END;
 GO
 
--- PROCEDURE: Crear Nota de CrÈdito
--- Genera una nota de crÈdito solo si la factura est· pagada y el usuario tiene el rol de Supervisor.
-CREATE PROCEDURE seguridad.CrearNotaCredito
-    @FacturaID INT,
+-- PROCEDURE: Crear Nota de Cr√©dito
+-- Genera una nota de cr√©dito solo si la factura est√° pagada y el usuario tiene el rol de Supervisor.
+CREATE OR ALTER PROCEDURE seguridad.CrearNotaCredito
+    @FacturaID VARCHAR(50),
     @MontoCredito DECIMAL(10,2)
 AS
 BEGIN
     DECLARE @EstadoFactura VARCHAR(20);
 
-    -- Verificar que la factura estÈ pagada
+    -- Verificar que la factura est√© pagada
     SELECT @EstadoFactura = estado FROM transacciones.FACTURA WHERE id = @FacturaID;
 
-    IF @EstadoFactura = 'pagada'
+    IF @EstadoFactura = 1
     BEGIN
         INSERT INTO transacciones.NOTA_CREDITO (id_factura, monto)
         VALUES (@FacturaID, @MontoCredito);
 
-        PRINT 'Nota de crÈdito generada con Èxito.';
+        PRINT 'Nota de cr√©dito generada con √©xito.';
     END
     ELSE
     BEGIN
-        PRINT 'Error: La factura debe estar pagada para generar una nota de crÈdito.';
+        PRINT 'Error: La factura debe estar pagada para generar una nota de cr√©dito.';
     END
 END;
 GO
 
--- PROCEDURE: Configurar PolÌtica de Respaldo
--- Define una polÌtica de respaldo completo semanal y diferencial diario para optimizar el tiempo y el espacio de almacenamiento.
+-- PROCEDURE: Configurar Pol√≠tica de Respaldo
+-- Define una pol√≠tica de respaldo completo semanal y diferencial diario para optimizar el tiempo y el espacio de almacenamiento.
 CREATE PROCEDURE seguridad.ConfigurarPoliticaRespaldo
 AS
 BEGIN
@@ -99,18 +99,18 @@ BEGIN
     TO DISK = 'C:\backups\Com5600G08_diff.bak'
     WITH DIFFERENTIAL, NAME = 'Respaldo Diferencial Diario';
 
-    PRINT 'PolÌtica de respaldo configurada correctamente.';
+    PRINT 'Pol√≠tica de respaldo configurada correctamente.';
 END;
 GO
 
--- PROCEDURE: EjecuciÛn Completa del Proceso de Seguridad
--- Procedimiento principal que ejecuta todos los procedimientos de configuraciÛn de seguridad y respaldo.
+-- PROCEDURE: Ejecuci√≥n Completa del Proceso de Seguridad
+-- Procedimiento principal que ejecuta todos los procedimientos de configuraci√≥n de seguridad y respaldo.
 CREATE PROCEDURE seguridad.EjecutarProcesoSeguridad
 AS
 BEGIN TRY
-    PRINT 'Iniciando configuraciÛn de seguridad...';
+    PRINT 'Iniciando configuraci√≥n de seguridad...';
     
-    -- Configurar Claves de EncriptaciÛn
+    -- Configurar Claves de Encriptaci√≥n
     EXEC seguridad.ConfigurarClavesEncriptacion;
 
     -- Encriptar Datos de Empleados
@@ -119,13 +119,13 @@ BEGIN TRY
     -- Crear Roles y Asignar Permisos
     EXEC seguridad.CrearRolesYAsignarPermisos;
 
-    -- Configurar PolÌtica de Respaldo
+    -- Configurar Pol√≠tica de Respaldo
     EXEC seguridad.ConfigurarPoliticaRespaldo;
 
-    PRINT 'Proceso de configuraciÛn de seguridad completado exitosamente.';
+    PRINT 'Proceso de configuraci√≥n de seguridad completado exitosamente.';
 END TRY
 BEGIN CATCH
-    PRINT 'Error durante la ejecuciÛn del proceso de seguridad:';
+    PRINT 'Error durante la ejecuci√≥n del proceso de seguridad:';
     PRINT ERROR_MESSAGE();
 END CATCH;
 GO
