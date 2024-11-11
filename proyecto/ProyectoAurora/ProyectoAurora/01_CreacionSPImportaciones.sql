@@ -142,6 +142,24 @@ BEGIN
     -- Ejecutar el comando dinámico
     EXEC sp_executesql @sql;
 
+	IF NOT EXISTS ( SELECT TOP 1 1 FROM #TEMP_EMPLEADO
+	WHERE 
+	legajo IS NOT NULL OR
+	nombre IS NOT NULL OR
+	apellido IS NOT NULL OR
+	dni IS NOT NULL OR
+	direccion IS NOT NULL OR
+	email_personal IS NOT NULL OR
+	email_empresa IS NOT NULL OR
+	cargo IS NOT NULL OR
+	sucursal IS NOT NULL OR
+	turno IS NOT NULL
+	)
+    BEGIN
+        EXEC SP_SQLEXEC 'DROP TABLE #TEMP_EMPLEADO;'
+		RETURN;
+    END
+
     --Validamos no cargar datos duplicados
 	INSERT INTO seguridad.CARGO (nombre)
 	SELECT DISTINCT cargo
@@ -204,8 +222,17 @@ BEGIN
 	-- Ejecutar el comando dinámico
     EXEC sp_executesql @sql;
 
-	--Validamos que no se carguen duplicados
+	IF NOT EXISTS ( SELECT TOP 1 1 FROM #TEMP_MEDIO_PAGO
+	WHERE 
+	descripcion_ingles IS NOT NULL OR
+	descripcion IS NOT NULL
+	)
+    BEGIN
+        EXEC SP_SQLEXEC 'DROP TABLE #TEMP_MEDIO_PAGO;'
+		RETURN;
+    END
 
+	--Validamos que no se carguen duplicados
 	INSERT INTO transacciones.MEDIO_DE_PAGO (descripcion_ingles, descripcion)
 	SELECT DISTINCT
 		t.descripcion_ingles,
@@ -297,6 +324,16 @@ BEGIN
     -- Ejecutar el comando dinámico
     EXEC sp_executesql @sql;
 	
+	IF NOT EXISTS ( SELECT TOP 1 1 FROM #TEMP_ELECTRONICOS
+	WHERE 
+	nombre_producto IS NOT NULL OR
+	precio_unidad_en_dolares IS NOT NULL
+	)
+    BEGIN
+        EXEC SP_SQLEXEC 'DROP TABLE #TEMP_ELECTRONICOS;'
+		RETURN;
+    END
+
 	-- Insertar en la tabla PRODUCTO utilizando los datos de #TEMP_ELECTRONICOS
     -- Acá convertimos el precio en dólares a pesos
 	--Validamos no cargar duplicados
@@ -360,6 +397,16 @@ BEGIN
 	-- Ejecutar el comando dinámico
     EXEC sp_executesql @sql;
 
+	IF NOT EXISTS ( SELECT TOP 1 1 FROM #TEMP_CATEGORIAS
+	WHERE 
+	linea_producto IS NOT NULL OR
+	producto IS NOT NULL
+	)
+    BEGIN
+        EXEC SP_SQLEXEC 'DROP TABLE #TEMP_CATEGORIAS;'
+		RETURN;
+    END
+
 	-- Paso 4: Insertar en la tabla CATEGORIA si la categoría no existe
 	DECLARE @id_categoria INT;
 
@@ -392,6 +439,21 @@ BEGIN
 								''Text;HDR=YES;FMT=Delimited;Database=' + @pathCatalogos + ''', 
 								''SELECT * FROM catalogo.csv'');';
 	EXEC sp_executesql @sql;
+
+	IF NOT EXISTS ( SELECT TOP 1 1 FROM #TEMP_CATALOGO
+	WHERE 
+	id IS NOT NULL OR
+	category IS NOT NULL OR
+	name IS NOT NULL OR
+	price IS NOT NULL OR
+	reference_price IS NOT NULL OR
+	reference_unit IS NOT NULL OR
+	date IS NOT NULL
+	)
+    BEGIN
+        EXEC SP_SQLEXEC 'DROP TABLE #TEMP_CATALOGO;'
+		RETURN;
+    END
 
 	-- Paso 5: Insertar datos en la tabla PRODUCTO
 	INSERT INTO productos.PRODUCTO (nombre_producto, precio_unidad, id_categoria)

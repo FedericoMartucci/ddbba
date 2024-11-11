@@ -195,7 +195,7 @@ BEGIN
     CREATE TABLE transacciones.FACTURA (
         id CHAR(11) CHECK (id LIKE '[0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9][0-9][0-9]') CONSTRAINT PK_FACTURA_ID PRIMARY KEY,
         tipo_de_factura CHAR CHECK(tipo_de_factura IN('A', 'B', 'C')) NOT NULL,
-		estado BIT NOT NULL DEFAULT 0
+		estado BIT NOT NULL DEFAULT 1 -- 1 para 'pagada' y 0 para 'no pagada'
 	);
 END;
 

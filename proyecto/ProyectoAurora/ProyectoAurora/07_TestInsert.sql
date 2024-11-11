@@ -210,9 +210,44 @@ END
 
 GO
 
+CREATE OR ALTER PROCEDURE inserciones.TestInsertarProductosElectronicos
+	@pathCaso1 VARCHAR(255), 
+	@pathCaso2 VARCHAR(255),  
+	@pathCaso3 VARCHAR(255) 
+AS
+BEGIN
+	DECLARE @cantidadDeFilasAntesEnProducto INT;
+	DECLARE @cantidadDeFilasAntesEnElectronico INT;
+	DECLARE @cantidadDeFilasDespuesEnProducto INT;
+	DECLARE @cantidadDeFilasDespuesEnElectronico INT;
+	DECLARE @todoOK VARCHAR(62) = 'SP InsertarProductosElectronicos funciona correctamente para el caso ';
+	
+	--CASO 1: volver a cargar mismo archivo
+	SELECT * FROM productos.PRODUCTO
+	SELECT * FROM productos.ELECTRONICO
+	SET @cantidadDeFilasAntesEnProducto = (SELECT COUNT(1) FROM productos.PRODUCTO)
+	SET @cantidadDeFilasAntesEnElectronico = (SELECT COUNT(1) FROM productos.ELECTRONICO)
+
+	EXEC inserciones.InsertarProductosElectronicos @pathCaso1;
+	
+	SELECT * FROM productos.PRODUCTO
+	SELECT * FROM productos.ELECTRONICO
+	SET @cantidadDeFilasDespuesEnProducto = (SELECT COUNT(1) FROM productos.PRODUCTO)
+	SET @cantidadDeFilasDespuesEnElectronico = (SELECT COUNT(1) FROM productos.ELECTRONICO)
+
+	IF(@cantidadDeFilasAntesEnProducto <> @cantidadDeFilasDespuesEnProducto OR @cantidadDeFilasAntesEnElectronico <> @cantidadDeFilasDespuesEnElectronico)
+		RAISERROR ('Error raised in TRY block.', 16, 1 );
+	ELSE
+		PRINT @todoOK + 'volver a cargar mismo archivo.'
+
+END
+
+GO
+
 DECLARE @pathInformacionComplementaria VARCHAR(255) = 'C:\Users\PC\Desktop\ddbba\Informacion_complementaria.xlsx';
 DECLARE @pathCaso2 VARCHAR(255) = 'C:\Users\PC\Desktop\ddbba\test-caso2-insert.xlsx';
 DECLARE @pathCaso3 VARCHAR(255) = 'C:\Users\PC\Desktop\ddbba\test-caso3-insert.xlsx';
+DECLARE @pathProductosElectronicos VARCHAR(255) = 'C:\Users\PC\Desktop\ddbba\Electronic accessories.xlsx';
 
 EXEC inserciones.TestInsertarSucursales
 @pathInformacionComplementaria,
@@ -228,3 +263,16 @@ EXEC inserciones.TestInsertarMediosDePago
 @pathInformacionComplementaria, 
 @pathCaso2, 
 @pathCaso3;
+
+EXEC inserciones.TestInsertarProductosElectronicos 
+@pathProductosElectronicos, 
+NULL,
+NULL;
+
+GO
+	SELECT nombre_producto, id_categoria, COUNT(1) 
+	FROM productos.PRODUCTO GROUP BY nombre_producto, id_categoria
+	HAVING COUNT(1) > 1
+
+	SELECT * FROM productos.PRODUCTO
+	WHERE nombre_producto = '20in Monitor'
