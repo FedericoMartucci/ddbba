@@ -635,7 +635,6 @@ BEGIN
 			);
 		';
 
-
 		-- Ejecutar el SQL dinámico para el BULK INSERT
 		EXEC sp_executesql @sql;
 

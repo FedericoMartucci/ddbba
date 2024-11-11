@@ -298,24 +298,94 @@ CREATE OR ALTER PROCEDURE inserciones.TestIngresarCategorias
 	@pathCaso3 VARCHAR(255)
 AS
 BEGIN
+	DECLARE @cantidadDeFilasAntesEnCategoria INT;
+	DECLARE @cantidadDeFilasAntesEnProducto INT;
+	DECLARE @cantidadDeFilasAntesEnVarios INT;
+	DECLARE @cantidadDeFilasDespuesEnCategoria INT;
+	DECLARE @cantidadDeFilasDespuesEnProducto INT;
+	DECLARE @cantidadDeFilasDespuesEnVarios INT;
 	DECLARE @todoOK VARCHAR(100) = 'SP TestIngresarCategorias funciona correctamente para el caso ';
 
 	PRINT 'TestInsertarProductosElectronicos:' + CHAR(10)
+	
 	--CASO 1: volver a cargar mismo archivo
+	SELECT * FROM seguridad.CATEGORIA
+	SELECT * FROM productos.PRODUCTO
+	SELECT * FROM productos.VARIOS
+	SET @cantidadDeFilasAntesEnCategoria = (SELECT COUNT(1) FROM seguridad.CATEGORIA)
+	SET @cantidadDeFilasAntesEnProducto = (SELECT COUNT(1) FROM productos.PRODUCTO)
+	SET @cantidadDeFilasAntesEnVarios = (SELECT COUNT(1) FROM productos.VARIOS)
+
+	EXEC inserciones.IngresarCategorias @pathCatalogo, @pathCaso1
 	
 	SELECT * FROM seguridad.CATEGORIA
 	SELECT * FROM productos.PRODUCTO
 	SELECT * FROM productos.VARIOS
 
-	EXEC inserciones.IngresarCategorias @pathCatalogo, @pathCaso1
-	
+	SET @cantidadDeFilasDespuesEnCategoria = (SELECT COUNT(1) FROM seguridad.CATEGORIA)
+	SET @cantidadDeFilasDespuesEnProducto = (SELECT COUNT(1) FROM productos.PRODUCTO)
+	SET @cantidadDeFilasDespuesEnVarios = (SELECT COUNT(1) FROM productos.VARIOS)
+
+	IF(
+		@cantidadDeFilasAntesEnCategoria <> @cantidadDeFilasDespuesEnCategoria OR
+		@cantidadDeFilasAntesEnProducto <> @cantidadDeFilasDespuesEnProducto OR
+		@cantidadDeFilasAntesEnVarios <> @cantidadDeFilasDespuesEnVarios
+	)
+		RAISERROR ('Error raised in TRY block.', 16, 1 );
+	ELSE
+		PRINT @todoOK + 'volver a cargar mismo archivo.'
+
 	--CASO 2: volver a cargar mismo archivo con tuplas extra distintas.
+	SELECT * FROM seguridad.CATEGORIA
+	SELECT * FROM productos.PRODUCTO
+	SELECT * FROM productos.VARIOS
+	SET @cantidadDeFilasAntesEnCategoria = (SELECT COUNT(1) FROM seguridad.CATEGORIA)
+	SET @cantidadDeFilasAntesEnProducto = (SELECT COUNT(1) FROM productos.PRODUCTO)
+	SET @cantidadDeFilasAntesEnVarios = (SELECT COUNT(1) FROM productos.VARIOS)
 
 	EXEC inserciones.IngresarCategorias @pathCatalogo, @pathCaso2
 
-	--CASO 3: cargar archivo vacio.
+	SELECT * FROM seguridad.CATEGORIA
+	SELECT * FROM productos.PRODUCTO
+	SELECT * FROM productos.VARIOS
+	SET @cantidadDeFilasDespuesEnCategoria = (SELECT COUNT(1) FROM seguridad.CATEGORIA)
+	SET @cantidadDeFilasDespuesEnProducto = (SELECT COUNT(1) FROM productos.PRODUCTO)
+	SET @cantidadDeFilasDespuesEnVarios = (SELECT COUNT(1) FROM productos.VARIOS)
 
+	IF(
+		@cantidadDeFilasAntesEnCategoria <> @cantidadDeFilasDespuesEnCategoria OR
+		@cantidadDeFilasAntesEnProducto <> @cantidadDeFilasDespuesEnProducto OR
+		@cantidadDeFilasAntesEnVarios <> @cantidadDeFilasDespuesEnVarios
+	)
+		RAISERROR ('Error raised in TRY block.', 16, 1 );
+	ELSE
+		PRINT @todoOK + 'volver a cargar mismo archivo con tuplas extra distintas.'	
+
+	--CASO 3: cargar archivo vacio.
+	SELECT * FROM seguridad.CATEGORIA
+	SELECT * FROM productos.PRODUCTO
+	SELECT * FROM productos.VARIOS
+	SET @cantidadDeFilasAntesEnCategoria = (SELECT COUNT(1) FROM seguridad.CATEGORIA)
+	SET @cantidadDeFilasAntesEnProducto = (SELECT COUNT(1) FROM productos.PRODUCTO)
+	SET @cantidadDeFilasAntesEnVarios = (SELECT COUNT(1) FROM productos.VARIOS)
+	
 	EXEC inserciones.IngresarCategorias @pathCatalogo, @pathCaso3
+
+	SELECT * FROM seguridad.CATEGORIA
+	SELECT * FROM productos.PRODUCTO
+	SELECT * FROM productos.VARIOS
+	SET @cantidadDeFilasDespuesEnCategoria = (SELECT COUNT(1) FROM seguridad.CATEGORIA)
+	SET @cantidadDeFilasDespuesEnProducto = (SELECT COUNT(1) FROM productos.PRODUCTO)
+	SET @cantidadDeFilasDespuesEnVarios = (SELECT COUNT(1) FROM productos.VARIOS)
+
+	IF(
+		@cantidadDeFilasAntesEnCategoria <> @cantidadDeFilasDespuesEnCategoria OR
+		@cantidadDeFilasAntesEnProducto <> @cantidadDeFilasDespuesEnProducto OR
+		@cantidadDeFilasAntesEnVarios <> @cantidadDeFilasDespuesEnVarios
+	)
+		RAISERROR ('Error raised in TRY block.', 16, 1 );
+	ELSE
+		PRINT @todoOK + 'cargar archivo vacio.'
 
 	PRINT CHAR(10);
 END
@@ -328,13 +398,95 @@ CREATE OR ALTER PROCEDURE inserciones.TestInsertarProductosImportados
 	@pathCaso3 VARCHAR(255) 
 AS
 BEGIN
+	DECLARE @cantidadDeFilasAntesEnCategoria INT;
+	DECLARE @cantidadDeFilasAntesEnProducto INT;
+	DECLARE @cantidadDeFilasAntesEnImportado INT;
+
+	DECLARE @cantidadDeFilasDespuesEnCategoria INT;
+	DECLARE @cantidadDeFilasDespuesEnProducto INT;
+	DECLARE @cantidadDeFilasDespuesEnImportado INT;
 	DECLARE @todoOK VARCHAR(100) = 'SP InsertarProductosImportados funciona correctamente para el caso ';
 	
 	PRINT 'TestInsertarProductosImportados:' + CHAR(10);
 
 	--CASO 1: volver a cargar mismo archivo
+	SELECT * FROM seguridad.CATEGORIA
+	SELECT * FROM productos.PRODUCTO
+	SELECT * FROM productos.IMPORTADO
+	SET @cantidadDeFilasAntesEnCategoria = (SELECT COUNT(1) FROM seguridad.CATEGORIA)
+	SET @cantidadDeFilasAntesEnProducto = (SELECT COUNT(1) FROM productos.PRODUCTO)
+	SET @cantidadDeFilasAntesEnImportado = (SELECT COUNT(1) FROM productos.IMPORTADO)
+
+	EXEC inserciones.InsertarProductosImportados @pathCaso1
+	
+	SELECT * FROM seguridad.CATEGORIA
+	SELECT * FROM productos.PRODUCTO
+	SELECT * FROM productos.IMPORTADO
+	SET @cantidadDeFilasDespuesEnCategoria = (SELECT COUNT(1) FROM seguridad.CATEGORIA)
+	SET @cantidadDeFilasDespuesEnProducto = (SELECT COUNT(1) FROM productos.PRODUCTO)
+	SET @cantidadDeFilasDespuesEnImportado = (SELECT COUNT(1) FROM productos.IMPORTADO)
+
+	IF(
+		@cantidadDeFilasAntesEnCategoria <> @cantidadDeFilasDespuesEnCategoria OR
+		@cantidadDeFilasAntesEnProducto <> @cantidadDeFilasDespuesEnProducto OR
+		@cantidadDeFilasAntesEnImportado <> @cantidadDeFilasDespuesEnImportado
+	)
+		RAISERROR ('Error raised in TRY block.', 16, 1 );
+	ELSE
+		PRINT @todoOK + 'volver a cargar mismo archivo.'
+
 	--CASO 2: volver a cargar mismo archivo con tuplas extra distintas.
+	SELECT * FROM seguridad.CATEGORIA
+	SELECT * FROM productos.PRODUCTO
+	SELECT * FROM productos.IMPORTADO
+	SET @cantidadDeFilasAntesEnCategoria = (SELECT COUNT(1) FROM seguridad.CATEGORIA)
+	SET @cantidadDeFilasAntesEnProducto = (SELECT COUNT(1) FROM productos.PRODUCTO)
+	SET @cantidadDeFilasAntesEnImportado = (SELECT COUNT(1) FROM productos.IMPORTADO)
+
+
+	EXEC inserciones.InsertarProductosImportados @pathCaso2
+	
+	SELECT * FROM seguridad.CATEGORIA
+	SELECT * FROM productos.PRODUCTO
+	SELECT * FROM productos.IMPORTADO
+	SET @cantidadDeFilasDespuesEnCategoria = (SELECT COUNT(1) FROM seguridad.CATEGORIA)
+	SET @cantidadDeFilasDespuesEnProducto = (SELECT COUNT(1) FROM productos.PRODUCTO)
+	SET @cantidadDeFilasDespuesEnImportado = (SELECT COUNT(1) FROM productos.IMPORTADO)
+
+	IF(
+		@cantidadDeFilasAntesEnCategoria <> @cantidadDeFilasDespuesEnCategoria OR
+		@cantidadDeFilasAntesEnProducto <> @cantidadDeFilasDespuesEnProducto OR
+		@cantidadDeFilasAntesEnImportado <> @cantidadDeFilasDespuesEnImportado
+	)
+		RAISERROR ('Error raised in TRY block.', 16, 1 );
+	ELSE
+		PRINT @todoOK + 'volver a cargar mismo archivo con tuplas extra distintas.'	
+
 	--CASO 3: cargar archivo vacio.
+	SELECT * FROM seguridad.CATEGORIA
+	SELECT * FROM productos.PRODUCTO
+	SELECT * FROM productos.IMPORTADO
+	SET @cantidadDeFilasAntesEnCategoria = (SELECT COUNT(1) FROM seguridad.CATEGORIA)
+	SET @cantidadDeFilasAntesEnProducto = (SELECT COUNT(1) FROM productos.PRODUCTO)
+	SET @cantidadDeFilasAntesEnImportado = (SELECT COUNT(1) FROM productos.IMPORTADO)
+	
+	EXEC inserciones.InsertarProductosImportados @pathCaso3
+
+	SELECT * FROM seguridad.CATEGORIA
+	SELECT * FROM productos.PRODUCTO
+	SELECT * FROM productos.IMPORTADO
+	SET @cantidadDeFilasDespuesEnCategoria = (SELECT COUNT(1) FROM seguridad.CATEGORIA)
+	SET @cantidadDeFilasDespuesEnProducto = (SELECT COUNT(1) FROM productos.PRODUCTO)
+	SET @cantidadDeFilasDespuesEnImportado = (SELECT COUNT(1) FROM productos.IMPORTADO)
+
+	IF(
+		@cantidadDeFilasAntesEnCategoria <> @cantidadDeFilasDespuesEnCategoria OR
+		@cantidadDeFilasAntesEnProducto <> @cantidadDeFilasDespuesEnProducto OR
+		@cantidadDeFilasAntesEnImportado <> @cantidadDeFilasDespuesEnImportado
+	)
+		RAISERROR ('Error raised in TRY block.', 16, 1 );
+	ELSE
+		PRINT @todoOK + 'cargar archivo vacio.'
 
 	PRINT CHAR(10);
 END
@@ -347,13 +499,113 @@ CREATE OR ALTER PROCEDURE inserciones.TestInsertarVentasRegistradas
 	@pathCaso3 VARCHAR(255) 
 AS
 BEGIN
+	DECLARE @cantidadDeFilasAntesEnTipo INT;
+	DECLARE @cantidadDeFilasAntesEnCliente INT;
+	DECLARE @cantidadDeFilasAntesEnFactura INT;
+	DECLARE @cantidadDeFilasAntesEnVenta INT;
+
+	DECLARE @cantidadDeFilasDespuesEnTipo INT;
+	DECLARE @cantidadDeFilasDespuesEnCliente INT;
+	DECLARE @cantidadDeFilasDespuesEnFactura INT;
+	DECLARE @cantidadDeFilasDespuesEnVenta INT;
+
 	DECLARE @todoOK VARCHAR(100) = 'SP InsertarVentasRegistradas funciona correctamente para el caso ';
 
 	PRINT 'TestInsertarVentasRegistradas:' + CHAR(10);
 
 	--CASO 1: volver a cargar mismo archivo
+	SELECT * FROM seguridad.TIPO
+	SELECT * FROM seguridad.CLIENTE
+	SELECT * FROM transacciones.FACTURA
+	SELECT * FROM transacciones.VENTA
+	SET @cantidadDeFilasAntesEnTipo = (SELECT COUNT(1) FROM seguridad.TIPO)
+	SET @cantidadDeFilasAntesEnCliente = (SELECT COUNT(1) FROM seguridad.CLIENTE)
+	SET @cantidadDeFilasAntesEnFactura = (SELECT COUNT(1) FROM transacciones.FACTURA)
+	SET @cantidadDeFilasAntesEnVenta = (SELECT COUNT(1) FROM transacciones.VENTA)
+
+	EXEC inserciones.InsertarVentasRegistradas @pathCaso1
+
+	SELECT * FROM seguridad.TIPO
+	SELECT * FROM seguridad.CLIENTE
+	SELECT * FROM transacciones.FACTURA
+	SELECT * FROM transacciones.VENTA
+	SET @cantidadDeFilasDespuesEnTipo = (SELECT COUNT(1) FROM seguridad.TIPO)
+	SET @cantidadDeFilasDespuesEnCliente = (SELECT COUNT(1) FROM seguridad.CLIENTE)
+	SET @cantidadDeFilasDespuesEnFactura = (SELECT COUNT(1) FROM transacciones.FACTURA)
+	SET @cantidadDeFilasDespuesEnVenta = (SELECT COUNT(1) FROM transacciones.VENTA)
+
+
+	IF(
+		@cantidadDeFilasAntesEnTipo <> @cantidadDeFilasDespuesEnTipo OR
+		@cantidadDeFilasAntesEnCliente <> @cantidadDeFilasDespuesEnCliente OR
+		@cantidadDeFilasAntesEnFactura <> @cantidadDeFilasDespuesEnFactura OR
+		@cantidadDeFilasAntesEnVenta <> @cantidadDeFilasDespuesEnVenta
+	)
+		RAISERROR ('Error raised in TRY block.', 16, 1 );
+	ELSE
+		PRINT @todoOK + 'volver a cargar mismo archivo.'
+
 	--CASO 2: volver a cargar mismo archivo con tuplas extra distintas.
+	SELECT * FROM seguridad.TIPO
+	SELECT * FROM seguridad.CLIENTE
+	SELECT * FROM transacciones.FACTURA
+	SELECT * FROM transacciones.VENTA
+	SET @cantidadDeFilasAntesEnTipo = (SELECT COUNT(1) FROM seguridad.TIPO)
+	SET @cantidadDeFilasAntesEnCliente = (SELECT COUNT(1) FROM seguridad.CLIENTE)
+	SET @cantidadDeFilasAntesEnFactura = (SELECT COUNT(1) FROM transacciones.FACTURA)
+	SET @cantidadDeFilasAntesEnVenta = (SELECT COUNT(1) FROM transacciones.VENTA)
+
+	EXEC inserciones.InsertarVentasRegistradas @pathCaso2
+	
+	SELECT * FROM seguridad.TIPO
+	SELECT * FROM seguridad.CLIENTE
+	SELECT * FROM transacciones.FACTURA
+	SELECT * FROM transacciones.VENTA
+	SET @cantidadDeFilasDespuesEnTipo = (SELECT COUNT(1) FROM seguridad.TIPO)
+	SET @cantidadDeFilasDespuesEnCliente = (SELECT COUNT(1) FROM seguridad.CLIENTE)
+	SET @cantidadDeFilasDespuesEnFactura = (SELECT COUNT(1) FROM transacciones.FACTURA)
+	SET @cantidadDeFilasDespuesEnVenta = (SELECT COUNT(1) FROM transacciones.VENTA)
+
+	IF(
+		@cantidadDeFilasAntesEnTipo <> @cantidadDeFilasDespuesEnTipo OR
+		@cantidadDeFilasAntesEnCliente <> @cantidadDeFilasDespuesEnCliente OR
+		@cantidadDeFilasAntesEnFactura <> @cantidadDeFilasDespuesEnFactura OR
+		@cantidadDeFilasAntesEnVenta <> @cantidadDeFilasDespuesEnVenta
+	)
+		RAISERROR ('Error raised in TRY block.', 16, 1 );
+	ELSE
+		PRINT @todoOK + 'volver a cargar mismo archivo con tuplas extra distintas.'	
+
 	--CASO 3: cargar archivo vacio.
+	SELECT * FROM seguridad.TIPO
+	SELECT * FROM seguridad.CLIENTE
+	SELECT * FROM transacciones.FACTURA
+	SELECT * FROM transacciones.VENTA
+	SET @cantidadDeFilasAntesEnTipo = (SELECT COUNT(1) FROM seguridad.TIPO)
+	SET @cantidadDeFilasAntesEnCliente = (SELECT COUNT(1) FROM seguridad.CLIENTE)
+	SET @cantidadDeFilasAntesEnFactura = (SELECT COUNT(1) FROM transacciones.FACTURA)
+	SET @cantidadDeFilasAntesEnVenta = (SELECT COUNT(1) FROM transacciones.VENTA)
+
+	EXEC inserciones.InsertarVentasRegistradas @pathCaso3
+
+	SELECT * FROM seguridad.TIPO
+	SELECT * FROM seguridad.CLIENTE
+	SELECT * FROM transacciones.FACTURA
+	SELECT * FROM transacciones.VENTA
+	SET @cantidadDeFilasDespuesEnTipo = (SELECT COUNT(1) FROM seguridad.TIPO)
+	SET @cantidadDeFilasDespuesEnCliente = (SELECT COUNT(1) FROM seguridad.CLIENTE)
+	SET @cantidadDeFilasDespuesEnFactura = (SELECT COUNT(1) FROM transacciones.FACTURA)
+	SET @cantidadDeFilasDespuesEnVenta = (SELECT COUNT(1) FROM transacciones.VENTA)
+
+	IF(
+		@cantidadDeFilasAntesEnTipo <> @cantidadDeFilasDespuesEnTipo OR
+		@cantidadDeFilasAntesEnCliente <> @cantidadDeFilasDespuesEnCliente OR
+		@cantidadDeFilasAntesEnFactura <> @cantidadDeFilasDespuesEnFactura OR
+		@cantidadDeFilasAntesEnVenta <> @cantidadDeFilasDespuesEnVenta
+	)
+		RAISERROR ('Error raised in TRY block.', 16, 1 );
+	ELSE
+		PRINT @todoOK + 'cargar archivo vacio.'
 
 	PRINT CHAR(10);
 END
@@ -363,8 +615,16 @@ GO
 DECLARE @pathInformacionComplementaria VARCHAR(255) = 'C:\Users\PC\Desktop\ddbba\Informacion_complementaria.xlsx';
 DECLARE @pathCaso2 VARCHAR(255) = 'C:\Users\PC\Desktop\ddbba\test-caso2-insert.xlsx';
 DECLARE @pathCaso3 VARCHAR(255) = 'C:\Users\PC\Desktop\ddbba\test-caso3-insert.xlsx';
-DECLARE @pathProductosElectronicos VARCHAR(255) = 'C:\Users\PC\Desktop\ddbba\Electronic accessories.xlsx';
 
+DECLARE @pathProductosImportados VARCHAR(255) = 'C:\Users\PC\Desktop\ddbba\Productos_importados.xlsx'
+DECLARE @pathCaso2PI VARCHAR(255) = 'C:\Users\PC\Desktop\ddbba\test-caso2-insertProductosImportados.xlsx';
+DECLARE @pathCaso3PI VARCHAR(255) = 'C:\Users\PC\Desktop\ddbba\test-caso3-insertProductosImportados.xlsx';
+
+DECLARE @pathVentasRegistradas VARCHAR(255) = 'C:\Users\PC\Desktop\ddbba\Ventas_registradas.csv'
+DECLARE @pathCaso2VR VARCHAR(255) = 'C:\Users\PC\Desktop\ddbba\test-caso2-insertVentasRegistradas.csv';
+DECLARE @pathCaso3VR VARCHAR(255) = 'C:\Users\PC\Desktop\ddbba\test-caso3-insertVentasRegistradas.csv';
+
+DECLARE @pathProductosElectronicos VARCHAR(255) = 'C:\Users\PC\Desktop\ddbba\Electronic accessories.xlsx';
 DECLARE @pathCatalogo VARCHAR(255) = 'C:\Users\PC\Desktop\ddbba';
 
 EXEC inserciones.TestInsertarSucursales
@@ -382,6 +642,7 @@ EXEC inserciones.TestInsertarMediosDePago
 @pathCaso2, 
 @pathCaso3;
 
+/*ERROR A CORREGIR: INSERTA DUPLICADOS*/
 EXEC inserciones.TestInsertarProductosElectronicos 
 @pathProductosElectronicos, 
 NULL,
@@ -401,11 +662,11 @@ EXEC inserciones.TestIngresarCategorias
 @pathCaso3
 
 EXEC inserciones.TestInsertarProductosImportados
-NULL,
-NULL,
-NULL
+@pathProductosImportados,
+@pathCaso2PI,
+@pathCaso3PI
 
 EXEC inserciones.TestInsertarVentasRegistradas
-NULL,
-NULL,
-NULL
+@pathVentasRegistradas,
+@pathCaso2VR,
+@pathCaso3VR
