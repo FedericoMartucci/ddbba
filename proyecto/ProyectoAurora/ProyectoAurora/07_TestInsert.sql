@@ -29,7 +29,7 @@ BEGIN
 	DECLARE @cantidadDeFilasDespuesEnTelefono INT;
 	DECLARE @todoOK VARCHAR(100) = 'SP InsertarSucursales funciona correctamente para el caso ';
 
-	print 'TestInsertarSucursales:';
+	PRINT 'TestInsertarSucursales:';
 	--CASO 1: volver a cargar mismo archivo
 	SELECT * FROM seguridad.SUCURSAL
 	SELECT * FROM seguridad.TELEFONO
@@ -101,7 +101,7 @@ BEGIN
 	DECLARE @cantidadDeFilasDespuesEnEmpleado INT;
 	DECLARE @todoOK VARCHAR(100) = 'SP InsertarEmpleados funciona correctamente para el caso ';
 
-	print 'TestInsertarEmpleados:';
+	PRINT 'TestInsertarEmpleados:';
 	--CASO 1: volver a cargar mismo archivo
 	SELECT * FROM seguridad.CARGO
 	SELECT * FROM seguridad.EMPLEADO
@@ -171,7 +171,7 @@ BEGIN
 	DECLARE @cantidadDeFilasDespuesEnMediosDePago INT;
 	DECLARE @todoOK VARCHAR(100) = 'SP InsertarMediosDePago funciona correctamente para el caso ';
 
-	print 'TestInsertarMediosDePago:';
+	PRINT 'TestInsertarMediosDePago:';
 	--CASO 1: volver a cargar mismo archivo
 	SELECT * FROM transacciones.MEDIO_DE_PAGO
 	SET @cantidadDeFilasAntesEnMediosDePago = (SELECT COUNT(1) FROM transacciones.MEDIO_DE_PAGO)
@@ -191,7 +191,7 @@ BEGIN
 	SET @cantidadDeFilasAntesEnMediosDePago = (SELECT COUNT(1) FROM transacciones.MEDIO_DE_PAGO)
 	
 	EXEC inserciones.InsertarMediosDePago @pathCaso2
-	
+
 	SELECT * FROM transacciones.MEDIO_DE_PAGO
 	SET @cantidadDeFilasDespuesEnMediosDePago = (SELECT COUNT(1) FROM transacciones.MEDIO_DE_PAGO)
 	
@@ -231,7 +231,7 @@ BEGIN
 	DECLARE @cantidadDeFilasDespuesEnElectronico INT;
 	DECLARE @todoOK VARCHAR(100) = 'SP InsertarProductosElectronicos funciona correctamente para el caso ';
 	
-	print 'TestInsertarProductosElectronicos:' + CHAR(10)
+	PRINT 'TestInsertarProductosElectronicos:' + CHAR(10)
 	--CASO 1: volver a cargar mismo archivo
 	SELECT * FROM productos.PRODUCTO
 	SELECT * FROM productos.ELECTRONICO
@@ -286,6 +286,74 @@ BEGIN
 	ELSE
 		PRINT @todoOK + 'cargar archivo vacio.'
 
+	PRINT CHAR(10);
+END
+
+GO
+
+CREATE OR ALTER PROCEDURE inserciones.TestIngresarCategorias
+	@pathCatalogo VARCHAR(255),
+	@pathCaso1 VARCHAR(255), 
+	@pathCaso2 VARCHAR(255),
+	@pathCaso3 VARCHAR(255)
+AS
+BEGIN
+	DECLARE @todoOK VARCHAR(100) = 'SP TestIngresarCategorias funciona correctamente para el caso ';
+
+	PRINT 'TestInsertarProductosElectronicos:' + CHAR(10)
+	--CASO 1: volver a cargar mismo archivo
+	
+	SELECT * FROM seguridad.CATEGORIA
+	SELECT * FROM productos.PRODUCTO
+	SELECT * FROM productos.VARIOS
+
+	EXEC inserciones.IngresarCategorias @pathCatalogo, @pathCaso1
+	
+	--CASO 2: volver a cargar mismo archivo con tuplas extra distintas.
+
+	EXEC inserciones.IngresarCategorias @pathCatalogo, @pathCaso2
+
+	--CASO 3: cargar archivo vacio.
+
+	EXEC inserciones.IngresarCategorias @pathCatalogo, @pathCaso3
+
+	PRINT CHAR(10);
+END
+
+GO
+
+CREATE OR ALTER PROCEDURE inserciones.TestInsertarProductosImportados
+	@pathCaso1 VARCHAR(255), 
+	@pathCaso2 VARCHAR(255),  
+	@pathCaso3 VARCHAR(255) 
+AS
+BEGIN
+	DECLARE @todoOK VARCHAR(100) = 'SP InsertarProductosImportados funciona correctamente para el caso ';
+	
+	PRINT 'TestInsertarProductosImportados:' + CHAR(10);
+
+	--CASO 1: volver a cargar mismo archivo
+	--CASO 2: volver a cargar mismo archivo con tuplas extra distintas.
+	--CASO 3: cargar archivo vacio.
+
+	PRINT CHAR(10);
+END
+
+GO
+
+CREATE OR ALTER PROCEDURE inserciones.TestInsertarVentasRegistradas
+	@pathCaso1 VARCHAR(255), 
+	@pathCaso2 VARCHAR(255),  
+	@pathCaso3 VARCHAR(255) 
+AS
+BEGIN
+	DECLARE @todoOK VARCHAR(100) = 'SP InsertarVentasRegistradas funciona correctamente para el caso ';
+
+	PRINT 'TestInsertarVentasRegistradas:' + CHAR(10);
+
+	--CASO 1: volver a cargar mismo archivo
+	--CASO 2: volver a cargar mismo archivo con tuplas extra distintas.
+	--CASO 3: cargar archivo vacio.
 
 	PRINT CHAR(10);
 END
@@ -296,6 +364,8 @@ DECLARE @pathInformacionComplementaria VARCHAR(255) = 'C:\Users\PC\Desktop\ddbba
 DECLARE @pathCaso2 VARCHAR(255) = 'C:\Users\PC\Desktop\ddbba\test-caso2-insert.xlsx';
 DECLARE @pathCaso3 VARCHAR(255) = 'C:\Users\PC\Desktop\ddbba\test-caso3-insert.xlsx';
 DECLARE @pathProductosElectronicos VARCHAR(255) = 'C:\Users\PC\Desktop\ddbba\Electronic accessories.xlsx';
+
+DECLARE @pathCatalogo VARCHAR(255) = 'C:\Users\PC\Desktop\ddbba';
 
 EXEC inserciones.TestInsertarSucursales
 @pathInformacionComplementaria,
@@ -323,3 +393,19 @@ NULL;
 
 	SELECT * FROM productos.PRODUCTO
 	WHERE nombre_producto = '20in Monitor'
+
+EXEC inserciones.TestIngresarCategorias
+@pathCatalogo,
+@pathInformacionComplementaria,
+@pathCaso2,
+@pathCaso3
+
+EXEC inserciones.TestInsertarProductosImportados
+NULL,
+NULL,
+NULL
+
+EXEC inserciones.TestInsertarVentasRegistradas
+NULL,
+NULL,
+NULL

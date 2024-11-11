@@ -220,7 +220,12 @@ BEGIN
                  ''SELECT * FROM [medios de pago$]'');';
 
 	-- Ejecutar el comando dinámico
-    EXEC sp_executesql @sql;
+    BEGIN TRY
+		EXEC sp_executesql @sql;
+	END TRY
+	BEGIN CATCH
+		RAISERROR ('El archivo tiene un formato incorrecto o no tiene registros.', 16, 1 );
+	END CATCH
 
 	IF NOT EXISTS ( SELECT TOP 1 1 FROM #TEMP_MEDIO_PAGO
 	WHERE 
@@ -348,7 +353,7 @@ BEGIN
 		FROM productos.PRODUCTO p
 		WHERE p.nombre_producto = nombre_producto
 		AND p.precio_unidad = precio_unidad_en_dolares * @ret
-		AND p.id_categoria = @id_categoria
+		--AND p.id_categoria = @id_categoria
 	);
 
 	-- Insertar en la tabla ELECTRONICO utilizando los IDs recién generados en PRODUCTO
