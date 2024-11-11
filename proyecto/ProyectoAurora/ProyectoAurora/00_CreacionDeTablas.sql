@@ -195,7 +195,7 @@ BEGIN
     CREATE TABLE transacciones.FACTURA (
         id CHAR(11) CHECK (id LIKE '[0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9][0-9][0-9]') CONSTRAINT PK_FACTURA_ID PRIMARY KEY,
         tipo_de_factura CHAR CHECK(tipo_de_factura IN('A', 'B', 'C')) NOT NULL,
-		estado BIT NOT NULL DEFAULT 0
+		estado BIT NOT NULL DEFAULT 1 -- 1 para 'pagada' y 0 para 'no pagada'
 	);
 END;
 
@@ -204,7 +204,7 @@ IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'transacci
 BEGIN
     CREATE TABLE transacciones.NOTA_CREDITO (
 		id INT IDENTITY(1, 1) CONSTRAINT PK_NOTA_CREDITO_ID PRIMARY KEY,        
-		monto DECIMAL (10, 2),
+		monto DECIMAL (10, 2) CHECK (monto > 0),
 		id_factura CHAR(11) CHECK (id_factura LIKE '[0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9][0-9][0-9]'),
 		CONSTRAINT FK_ID_FACTURA FOREIGN KEY (id_factura) REFERENCES transacciones.FACTURA(id)
 
