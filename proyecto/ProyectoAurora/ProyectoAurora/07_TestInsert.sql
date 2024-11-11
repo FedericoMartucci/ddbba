@@ -27,8 +27,9 @@ BEGIN
 	DECLARE @cantidadDeFilasAntesEnTelefono INT;
 	DECLARE @cantidadDeFilasDespuesEnSucursal INT;
 	DECLARE @cantidadDeFilasDespuesEnTelefono INT;
-	DECLARE @todoOK VARCHAR(60) = 'SP InsertarSucursales funciona correctamente para el caso ';
+	DECLARE @todoOK VARCHAR(100) = 'SP InsertarSucursales funciona correctamente para el caso ';
 
+	print 'TestInsertarSucursales:';
 	--CASO 1: volver a cargar mismo archivo
 	SELECT * FROM seguridad.SUCURSAL
 	SELECT * FROM seguridad.TELEFONO
@@ -82,6 +83,8 @@ BEGIN
 		RAISERROR ('Error raised in TRY block.', 16, 1 );
 	ELSE
 		PRINT @todoOK + 'cargar archivo vacio.'
+
+	PRINT CHAR(10);
 END
 
 GO
@@ -96,8 +99,9 @@ BEGIN
 	DECLARE @cantidadDeFilasAntesEnEmpleado INT;
 	DECLARE @cantidadDeFilasDespuesEnCargo INT;
 	DECLARE @cantidadDeFilasDespuesEnEmpleado INT;
-	DECLARE @todoOK VARCHAR(60) = 'SP InsertarEmpleados funciona correctamente para el caso ';
+	DECLARE @todoOK VARCHAR(100) = 'SP InsertarEmpleados funciona correctamente para el caso ';
 
+	print 'TestInsertarEmpleados:';
 	--CASO 1: volver a cargar mismo archivo
 	SELECT * FROM seguridad.CARGO
 	SELECT * FROM seguridad.EMPLEADO
@@ -151,6 +155,8 @@ BEGIN
 		RAISERROR ('Error raised in TRY block.', 16, 1 );
 	ELSE
 		PRINT @todoOK + 'cargar archivo vacio.'
+
+	PRINT CHAR(10);
 END
 
 GO
@@ -163,8 +169,9 @@ AS
 BEGIN
 	DECLARE @cantidadDeFilasAntesEnMediosDePago INT;
 	DECLARE @cantidadDeFilasDespuesEnMediosDePago INT;
-	DECLARE @todoOK VARCHAR(62) = 'SP InsertarMediosDePago funciona correctamente para el caso ';
+	DECLARE @todoOK VARCHAR(100) = 'SP InsertarMediosDePago funciona correctamente para el caso ';
 
+	print 'TestInsertarMediosDePago:';
 	--CASO 1: volver a cargar mismo archivo
 	SELECT * FROM transacciones.MEDIO_DE_PAGO
 	SET @cantidadDeFilasAntesEnMediosDePago = (SELECT COUNT(1) FROM transacciones.MEDIO_DE_PAGO)
@@ -206,6 +213,8 @@ BEGIN
 		RAISERROR ('Error raised in TRY block.', 16, 1 );
 	ELSE
 		PRINT @todoOK + 'cargar archivo vacio.'
+
+		PRINT CHAR(10);
 END
 
 GO
@@ -220,8 +229,9 @@ BEGIN
 	DECLARE @cantidadDeFilasAntesEnElectronico INT;
 	DECLARE @cantidadDeFilasDespuesEnProducto INT;
 	DECLARE @cantidadDeFilasDespuesEnElectronico INT;
-	DECLARE @todoOK VARCHAR(62) = 'SP InsertarProductosElectronicos funciona correctamente para el caso ';
+	DECLARE @todoOK VARCHAR(100) = 'SP InsertarProductosElectronicos funciona correctamente para el caso ';
 	
+	print 'TestInsertarProductosElectronicos:' + CHAR(10)
 	--CASO 1: volver a cargar mismo archivo
 	SELECT * FROM productos.PRODUCTO
 	SELECT * FROM productos.ELECTRONICO
@@ -239,7 +249,45 @@ BEGIN
 		RAISERROR ('Error raised in TRY block.', 16, 1 );
 	ELSE
 		PRINT @todoOK + 'volver a cargar mismo archivo.'
+	
+	--CASO 2: volver a cargar mismo archivo con tuplas extra distintas.
+	SELECT * FROM productos.PRODUCTO
+	SELECT * FROM productos.ELECTRONICO
+	SET @cantidadDeFilasAntesEnProducto = (SELECT COUNT(1) FROM productos.PRODUCTO)
+	SET @cantidadDeFilasAntesEnElectronico = (SELECT COUNT(1) FROM productos.ELECTRONICO)
 
+	EXEC inserciones.InsertarProductosElectronicos @pathCaso2;
+	
+	SELECT * FROM productos.PRODUCTO
+	SELECT * FROM productos.ELECTRONICO
+	SET @cantidadDeFilasDespuesEnProducto = (SELECT COUNT(1) FROM productos.PRODUCTO)
+	SET @cantidadDeFilasDespuesEnElectronico = (SELECT COUNT(1) FROM productos.ELECTRONICO)
+
+	IF(@cantidadDeFilasAntesEnProducto <> @cantidadDeFilasDespuesEnProducto OR @cantidadDeFilasAntesEnElectronico <> @cantidadDeFilasDespuesEnElectronico)
+		RAISERROR ('Error raised in TRY block.', 16, 1 );
+	ELSE
+		PRINT @todoOK + 'volver a cargar mismo archivo con tuplas extra distintas.'	
+	
+	--CASO 3: cargar archivo vacio.
+	SELECT * FROM productos.PRODUCTO
+	SELECT * FROM productos.ELECTRONICO
+	SET @cantidadDeFilasAntesEnProducto = (SELECT COUNT(1) FROM productos.PRODUCTO)
+	SET @cantidadDeFilasAntesEnElectronico = (SELECT COUNT(1) FROM productos.ELECTRONICO)
+
+	EXEC inserciones.InsertarProductosElectronicos @pathCaso3;
+	
+	SELECT * FROM productos.PRODUCTO
+	SELECT * FROM productos.ELECTRONICO
+	SET @cantidadDeFilasDespuesEnProducto = (SELECT COUNT(1) FROM productos.PRODUCTO)
+	SET @cantidadDeFilasDespuesEnElectronico = (SELECT COUNT(1) FROM productos.ELECTRONICO)
+
+	IF(@cantidadDeFilasAntesEnProducto <> @cantidadDeFilasDespuesEnProducto OR @cantidadDeFilasAntesEnElectronico <> @cantidadDeFilasDespuesEnElectronico)
+		RAISERROR ('Error raised in TRY block.', 16, 1 );
+	ELSE
+		PRINT @todoOK + 'cargar archivo vacio.'
+
+
+	PRINT CHAR(10);
 END
 
 GO
@@ -268,8 +316,7 @@ EXEC inserciones.TestInsertarProductosElectronicos
 @pathProductosElectronicos, 
 NULL,
 NULL;
-
-GO
+--ERROR en InsertarProductosElectronicos -> ADMITE DUPLICADOS: Analizar id_producto
 	SELECT nombre_producto, id_categoria, COUNT(1) 
 	FROM productos.PRODUCTO GROUP BY nombre_producto, id_categoria
 	HAVING COUNT(1) > 1
