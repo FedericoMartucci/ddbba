@@ -13,6 +13,7 @@
 #															#
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 */
+
 USE Com5600G08
 GO
 
@@ -36,8 +37,21 @@ BEGIN
 
         -- Borrado lógico en cascada en la tabla 'PRODUCTO'
         UPDATE productos.PRODUCTO
-        SET esValido = 0
+        SET esValido = 0, fecha_eliminacion = GETDATE()
         WHERE id_categoria = @id_categoria;
+
+        -- Borrado lógico en cascada en las tablas 'IMPORTADO', 'VARIOS' y 'ELECTRONICO'
+        UPDATE productos.IMPORTADO
+        SET esValido = 0
+        WHERE id_producto IN (SELECT id_producto FROM productos.PRODUCTO WHERE id_categoria = @id_categoria);
+
+        UPDATE productos.VARIOS
+        SET esValido = 0
+        WHERE id_producto IN (SELECT id_producto FROM productos.PRODUCTO WHERE id_categoria = @id_categoria);
+
+        UPDATE productos.ELECTRONICO
+        SET esValido = 0
+        WHERE id_producto IN (SELECT id_producto FROM productos.PRODUCTO WHERE id_categoria = @id_categoria);
 
         COMMIT TRANSACTION;
     END TRY
@@ -48,15 +62,25 @@ BEGIN
 END;
 GO
 
--- Store Procedure para eliminación física en CARGO
-CREATE OR ALTER PROCEDURE borrado.EliminarCargoFisico
+
+-- PROCEDIMIENTO DE ELIMINACIÓN LÓGICA EN CASCADA
+CREATE OR ALTER PROCEDURE borrado.EliminarCargoLogico
     @id_cargo INT
 AS
 BEGIN
-    DELETE FROM seguridad.CARGO
+    -- ELIMINACIÓN LÓGICA DE LOS EMPLEADOS ASOCIADOS AL CARGO
+    UPDATE seguridad.EMPLEADO
+    SET esValido = 0
+    WHERE id_cargo = @id_cargo;
+
+    -- ELIMINACIÓN LÓGICA DEL CARGO
+    UPDATE seguridad.CARGO
+    SET esValido = 0
     WHERE id = @id_cargo;
 END;
 GO
+
+
 
 -- Store Procedure para eliminación física en SUCURSAL
 CREATE OR ALTER PROCEDURE borrado.EliminarSucursalFisico
@@ -130,34 +154,38 @@ END;
 GO
 
 -- Store Procedure para eliminación física en IMPORTADO
-CREATE OR ALTER PROCEDURE borrado.EliminarImportadoFisico
+CREATE OR ALTER PROCEDURE borrado.EliminarImportadoLogico
     @id_producto INT
 AS
 BEGIN
-    DELETE FROM productos.IMPORTADO
+    UPDATE productos.IMPORTADO
+    SET esValido = 0
     WHERE id_producto = @id_producto;
 END;
 GO
 
 -- Store Procedure para eliminación física en VARIOS
-CREATE OR ALTER PROCEDURE borrado.EliminarVariosFisico
+CREATE OR ALTER PROCEDURE borrado.EliminarVariosLogico
     @id_producto INT
 AS
 BEGIN
-    DELETE FROM productos.VARIOS
+    UPDATE productos.VARIOS
+    SET esValido = 0
     WHERE id_producto = @id_producto;
 END;
 GO
 
--- Store Procedure para eliminación física en ELECTRONICO
-CREATE OR ALTER PROCEDURE borrado.EliminarElectronicoFisico
+-- Store Procedure para eliminación lógica en ELECTRONICO
+CREATE OR ALTER PROCEDURE borrado.EliminarElectronicoLogico
     @id_producto INT
 AS
 BEGIN
-    DELETE FROM productos.ELECTRONICO
+    UPDATE productos.ELECTRONICO
+    SET esValido = 0
     WHERE id_producto = @id_producto;
 END;
 GO
+
 
 -- Store Procedure para eliminación lógica en PRODUCTO
 CREATE OR ALTER PROCEDURE borrado.EliminarProductoLogico
@@ -165,7 +193,7 @@ CREATE OR ALTER PROCEDURE borrado.EliminarProductoLogico
 AS
 BEGIN
     UPDATE productos.PRODUCTO
-    SET esValido = 0
+    SET esValido = 0, fecha_eliminacion = GETDATE()
     WHERE id_producto = @id_producto;
 END;
 GO
