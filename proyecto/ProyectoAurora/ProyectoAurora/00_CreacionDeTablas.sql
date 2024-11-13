@@ -44,7 +44,7 @@ BEGIN
     CREATE TABLE seguridad.CARGO (
         id INT IDENTITY(1, 1) CONSTRAINT PK_CARGO_ID PRIMARY KEY,
         nombre VARCHAR(100) NOT NULL,
-		esValido BIT NOT NULL DEFAULT 1,
+		es_valido BIT NOT NULL DEFAULT 1,
     );
 END;
 
@@ -65,7 +65,7 @@ BEGIN
     CREATE TABLE seguridad.CATEGORIA (
         id INT IDENTITY (1, 1) CONSTRAINT PK_CATEGORIA_ID PRIMARY KEY,
         descripcion VARCHAR(50),
-		esValido BIT NOT NULL DEFAULT 1,
+		es_valido BIT NOT NULL DEFAULT 1,
     );
 END;
 
@@ -94,7 +94,8 @@ BEGIN
 		reemplazar_por VARCHAR(255) NOT NULL,
         direccion VARCHAR(50) NOT NULL,
         codigo_postal CHAR(5) NOT NULL,
-        provincia VARCHAR(50) NOT NULL
+        provincia VARCHAR(50) NOT NULL,
+		es_valido BIT NOT NULL DEFAULT 1,
     );
 END;
 
@@ -127,7 +128,7 @@ BEGIN
         id_cargo INT,
         id_sucursal INT,
         turno VARCHAR(50),
-        esValido BIT NOT NULL DEFAULT 1,
+        es_valido BIT NOT NULL DEFAULT 1,
         CONSTRAINT FK_ID_CARGO_EMPLEADO_CARGO FOREIGN KEY (id_cargo) REFERENCES seguridad.CARGO(id)
         ON UPDATE CASCADE,
         CONSTRAINT FK_ID_SUCURSAL_EMPLEADO_SUCURSAL FOREIGN KEY (id_sucursal) REFERENCES seguridad.SUCURSAL(id)
@@ -151,7 +152,7 @@ BEGIN
         id_categoria INT,
         fecha_creacion DATE NOT NULL DEFAULT GETDATE(),
         fecha_eliminacion DATE,
-        esValido BIT NOT NULL DEFAULT 1,
+        es_valido BIT NOT NULL DEFAULT 1,
         CONSTRAINT FK_ID_CATEGORIA_PRODUCTO_CATEGORIA FOREIGN KEY (id_categoria) REFERENCES seguridad.CATEGORIA(id)
         ON UPDATE CASCADE
     );
@@ -165,7 +166,7 @@ BEGIN
         id_producto INT CONSTRAINT PK_IMPORTADO_ID PRIMARY KEY,
         proveedor VARCHAR(255),
         cantidad_por_unidad VARCHAR(255),
-		esValido BIT NOT NULL DEFAULT 1,
+		es_valido BIT NOT NULL DEFAULT 1,
         CONSTRAINT FK_ID_PRODUCTO_IMPORTADO_PRODUCTO FOREIGN KEY (id_producto) REFERENCES productos.PRODUCTO(id_producto)
         ON DELETE CASCADE
         ON UPDATE CASCADE
@@ -182,7 +183,7 @@ BEGIN
         fecha DATE,
         hora TIME(0),
         unidad_de_referencia VARCHAR(50),
-        esValido BIT NOT NULL DEFAULT 1,
+        es_valido BIT NOT NULL DEFAULT 1,
         CONSTRAINT FK_ID_PRODUCTO_VARIOS_PRODUCTO FOREIGN KEY (id_producto) REFERENCES productos.PRODUCTO(id_producto)
         ON DELETE CASCADE
         ON UPDATE CASCADE
@@ -196,7 +197,7 @@ BEGIN
     CREATE TABLE productos.ELECTRONICO (
         id_producto INT CONSTRAINT PK_ELECTRONICO_ID PRIMARY KEY,
         precio_unidad_en_dolares DECIMAL(10, 2),
-        esValido BIT NOT NULL DEFAULT 1,
+        es_valido BIT NOT NULL DEFAULT 1,
         CONSTRAINT FK_ID_PRODUCTO_ELECTRONICO_PRODUCTO FOREIGN KEY (id_producto) REFERENCES productos.PRODUCTO(id_producto)
         ON DELETE CASCADE
         ON UPDATE CASCADE
