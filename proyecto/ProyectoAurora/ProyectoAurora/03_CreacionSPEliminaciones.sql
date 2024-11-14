@@ -209,21 +209,25 @@ GO
 
 
 -- Store Procedure para eliminación física en MEDIO_DE_PAGO
-CREATE OR ALTER PROCEDURE borrado.EliminarMedioDePagoFisico
+CREATE OR ALTER PROCEDURE borrado.EliminarMedioDePagoLogico
     @id_medio INT
 AS
 BEGIN
+
     -- Verificar si el medio de pago existe
-    IF NOT EXISTS (SELECT 1 FROM transacciones.MEDIO_DE_PAGO WHERE id = @id_medio)
+    IF NOT EXISTS (SELECT 1 FROM transacciones.MEDIO_DE_PAGO WHERE id = @id_medio AND es_valido = 1)
     BEGIN
-        RAISERROR(130001, 16, 1);
+        RAISERROR(130001, 16, 1);;
         RETURN;
     END
 
-    DELETE FROM transacciones.MEDIO_DE_PAGO
+    -- Realizar el borrado lógico estableciendo es_valido en 0
+    UPDATE transacciones.MEDIO_DE_PAGO
+    SET es_valido = 0
     WHERE id = @id_medio;
 END;
 GO
+
 
 
 -- Store Procedure para eliminación física en VENTA

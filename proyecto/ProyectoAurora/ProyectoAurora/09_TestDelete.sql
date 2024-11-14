@@ -22,14 +22,19 @@ SET NOCOUNT ON;
 
 GO
 
--- DEFINO UN CODIGO DE ERROR CON UN MENSAJE ASOCIADO
-
+-- DEFINO UN CODIGO DE ERROR CON UN MENSAJE ASOCIADO (ELIMINAR ALGO QUE NO EXISTE)
 EXEC sp_addmessage @msgnum = 130001, 
                    @severity = 16, 
                    @msgtext = 'No se puede eliminar el cliente porque no existe.',
                    @replace = 'REPLACE';
 GO
 
+-- DEFINO UN CODIGO DE ERROR CON UN MENSAJE ASOCIADO (ELIMINAR ALGO QUE TIENE FK ASOCIADAS)
+EXEC sp_addmessage @msgnum = 130002, 
+                   @severity = 16, 
+                   @msgtext = 'No se puede eliminar porque otros registros lo están referenciando.',
+                   @replace = 'REPLACE';
+GO
 
 -- TEST BORRADO LOGICO EN CASCADA DE CATEGORIA -> PRODUCTO -> IMPORTADO
 CREATE OR ALTER PROCEDURE borrado.TestEliminarCategoriaHastaImportadoLogico
@@ -1309,9 +1314,156 @@ END;
 GO
 
 EXEC borrado.TestEliminarTipoFisicoError;
+GO
 
 
+CREATE OR ALTER PROCEDURE borrado.EliminarMedioDePagoLogicoExitoso
+AS
+BEGIN
+    DECLARE @id_medio INT;
+
+    -- Inserta un medio de pago de prueba
+    INSERT INTO transacciones.MEDIO_DE_PAGO (descripcion_ingles, descripcion, es_valido)
+    VALUES ('Test Payment Method', 'Método de Pago de Prueba', 1);
+
+    -- Obtener el ID del medio de pago insertado
+    SET @id_medio = SCOPE_IDENTITY();
+
+	SELECT * FROM transacciones.MEDIO_DE_PAGO WHERE id = @id_medio;
+
+    -- Ejecutar el procedimiento para la eliminación lógica
+    EXEC borrado.EliminarMedioDePagoLogico @id_medio;
+
+	SELECT * FROM transacciones.MEDIO_DE_PAGO WHERE id = @id_medio;
 
 
+    -- Verificar si el medio de pago está marcado como no válido
+    IF EXISTS (SELECT 1 FROM transacciones.MEDIO_DE_PAGO WHERE id = @id_medio AND es_valido = 0)
+    BEGIN
+        PRINT 'TEST PASADO - Borrado lógico de medio de pago exitoso';
+    END
+    ELSE
+    BEGIN
+        PRINT 'TEST FALLIDO - Error en el borrado lógico';
+    END
+END;
+GO
+
+EXEC borrado.EliminarMedioDePagoLogicoExitoso;
+GO
+
+CREATE OR ALTER PROCEDURE borrado.EliminarMedioDePagoLogicoFallido
+AS
+BEGIN
+    DECLARE @id_medio INT, @error_message NVARCHAR(255);
+
+    -- Intentar eliminar un medio de pago con ID negativo
+    BEGIN TRY
+        EXEC borrado.EliminarMedioDePagoLogico -1;
+        PRINT 'TEST FALLIDO - No se generó el error esperado para ID negativo';
+    END TRY
+    BEGIN CATCH
+      
+        IF ERROR_NUMBER() = 130001
+            PRINT 'TEST PASADO - Error esperado al intentar eliminar ID que no existe';
+        ELSE
+            PRINT 'TEST FALLIDO - Error inesperado: ' + @error_message;
+    END CATCH
+
+    -- Insertar un medio de pago y marcarlo como no válido para el segundo caso de prueba
+    INSERT INTO transacciones.MEDIO_DE_PAGO (descripcion_ingles, descripcion, es_valido)
+    VALUES ('Test Payment Method', 'Método de Pago de Prueba', 1);
+
+    -- Obtener el ID del medio de pago insertado
+    SET @id_medio = SCOPE_IDENTITY();
+
+    -- Marcar como no válido
+    UPDATE transacciones.MEDIO_DE_PAGO
+    SET es_valido = 0
+    WHERE id = @id_medio;
+
+    -- Caso 2: Intentar eliminar un medio de pago que ya está marcado como no válido
+    BEGIN TRY
+        EXEC borrado.EliminarMedioDePagoLogico @id_medio;
+        PRINT 'TEST FALLIDO - No se generó el error esperado para un registro no válido';
+    END TRY
+    BEGIN CATCH
+	        IF ERROR_NUMBER() = 130001
+            PRINT 'TEST PASADO - Error esperado al intentar eliminar medio de pago no válido';
+        ELSE
+            PRINT 'TEST FALLIDO - Error inesperado: ' + @error_message;
+    END CATCH
+END;
+GO
+
+EXEC borrado.EliminarMedioDePagoLogicoFallido;
+GO
+
+CREATE OR ALTER PROCEDURE borrado.EliminarFacturaFisicoExitoso
+AS
+BEGIN
+    DECLARE @id_factura CHAR(11) = '123-45-67890';
+
+    -- Insertar una factura de prueba
+    INSERT INTO transacciones.FACTURA (id, tipo_de_factura, estado)
+    VALUES (@id_factura, 'A', 1);
+
+    -- Ver inserción de la factura
+	SELECT * FROM transacciones.FACTURA WHERE id = @id_factura;
+
+    -- Ejecutar el procedimiento para la eliminación física de la factura
+    EXEC borrado.EliminarFacturaFisico @id_factura;
+
+	SELECT * FROM transacciones.FACTURA WHERE id = @id_factura;
+
+    -- Verificar si la factura fue eliminada
+    IF NOT EXISTS (SELECT 1 FROM transacciones.FACTURA WHERE id = @id_factura)
+    BEGIN
+        PRINT 'TEST PASADO - Eliminación física de factura exitosa.';
+    END
+    ELSE
+    BEGIN
+        PRINT 'TEST FALLIDO - La factura no se eliminó correctamente.';
+    END
+END;
+GO
+
+EXEC borrado.EliminarFacturaFisicoExitoso;
+GO
 
 
+CREATE OR ALTER PROCEDURE borrado.EliminarNotaCreditoFisicoExitoso
+AS
+BEGIN
+    DECLARE @id INT;
+
+    -- Insertar una nota de crédito de prueba
+    INSERT INTO transacciones.NOTA_CREDITO (monto)
+    VALUES (1000.00);
+
+    -- Obtener el ID de la nota de crédito recién insertada
+    SET @id = SCOPE_IDENTITY();
+
+    -- Ver que la nota de crédito fue insertada correctamente
+    SELECT * FROM transacciones.NOTA_CREDITO WHERE id = @id;
+
+    -- Ejecutar el procedimiento para la eliminación física de la nota de crédito
+    EXEC borrado.EliminarNotaCreditoFisico @id;
+
+    -- Ver que la nota de crédito fue eliminada correctamente
+    SELECT * FROM transacciones.NOTA_CREDITO WHERE id = @id;
+
+    -- Verificar si la nota de crédito fue eliminada
+    IF NOT EXISTS (SELECT 1 FROM transacciones.NOTA_CREDITO WHERE id = @id)
+    BEGIN
+        PRINT 'TEST PASADO - Eliminación física de nota de crédito exitosa.';
+    END
+    ELSE
+    BEGIN
+        PRINT 'TEST FALLIDO - Error en la eliminación física de nota de crédito.';
+    END
+END;
+GO
+
+EXEC borrado.EliminarNotaCreditoFisicoExitoso;
+GO
