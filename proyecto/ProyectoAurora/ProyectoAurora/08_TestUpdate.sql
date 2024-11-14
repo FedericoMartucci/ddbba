@@ -17,6 +17,9 @@
 USE Com5600G08;
 GO
 
+SET NOCOUNT ON;
+GO
+
 CREATE OR ALTER PROCEDURE actualizaciones.TestActualizarCargo 
 AS
 BEGIN
@@ -120,7 +123,7 @@ BEGIN
        (@turno_original = (SELECT turno FROM seguridad.EMPLEADO WHERE legajo = @legajo)) AND
        (@es_valido_original = (SELECT es_valido FROM seguridad.EMPLEADO WHERE legajo = @legajo))
     BEGIN
-        PRINT 'TEST PASADO - Actualización de empleado exitosa';
+        PRINT 'TEST PASADO - Actualización de EMPLEADO exitosa';
     END
     ELSE
     BEGIN
@@ -176,7 +179,7 @@ BEGIN
 
     -- Verificar el resultado
     IF (@precio_unidad_original != (SELECT precio_unidad FROM productos.PRODUCTO WHERE id_producto = @id_producto))
-        PRINT 'TEST PASADO - Actualización exitosa';
+        PRINT 'TEST PASADO - Actualización de PRODUCTO exitosa';
     ELSE
         PRINT 'TEST FALLIDO - Error en la actualización';
 
@@ -271,7 +274,7 @@ BEGIN
     -- Verificar si la descripción se ha actualizado
     IF (@descripcion_original != (SELECT descripcion FROM seguridad.CATEGORIA WHERE id = @id))
     BEGIN
-        PRINT 'TEST PASADO - Descripción actualizada correctamente.';
+        PRINT 'TEST PASADO - Actualicación de CATEGORÍA exitosa.';
     END
     ELSE
     BEGIN
@@ -280,6 +283,7 @@ BEGIN
 
     -- Mostrar el registro actualizado
     SELECT * FROM seguridad.CATEGORIA WHERE id = @id;
+	DELETE FROM seguridad.CATEGORIA WHERE id = @id;
 
 END;
 GO
@@ -348,3 +352,236 @@ GO
 
 -- Ejecutar la prueba
 EXEC actualizaciones.TestActualizarTelefono;
+GO
+
+CREATE OR ALTER PROCEDURE actualizaciones.TestActualizarFactura
+AS
+BEGIN
+    -- Declarar variables para almacenar el resultado de la prueba
+    DECLARE @resultadoEstado BIT,
+			@id_factura INT,
+			@id_prueba CHAR(11) = '999-99-9999',
+			@id_insertado CHAR(11);
+    
+
+    
+	BEGIN TRY
+		-- Insertar un registro de prueba en la tabla FACTURA
+		INSERT INTO transacciones.FACTURA (id, tipo_de_factura, estado)
+		VALUES (@id_prueba, 'A', 0); 
+		SET @id_factura = SCOPE_IDENTITY();
+
+	END TRY
+
+	BEGIN CATCH
+		PRINT 'Error en la inserción de factura';
+	END CATCH
+
+
+	BEGIN TRY
+
+		SELECT * from transacciones.FACTURA WHERE @id_factura = @id_factura;
+
+        -- Ejecutar el procedimiento almacenado para actualizar el estado
+        EXEC actualizaciones.ActualizarFactura
+            @id_factura = @id_factura,
+            @estado = 1; -- Cambiar el estado a 1 (activo)
+		
+		SELECT * from transacciones.FACTURA WHERE @id_factura = @id_factura;
+
+        -- Verificar que la actualización se haya realizado correctamente
+        SELECT @resultadoEstado = estado, @id_insertado = id
+        FROM transacciones.FACTURA
+        WHERE @id_factura = @id_factura;
+
+
+
+        -- Comprobar el resultado y devolver un mensaje
+        IF @id_insertado = @id_prueba AND @resultadoEstado = 1 
+            PRINT 'TEST PASADO - Actualizacion de FACTURA exitosa.';
+        ELSE
+            PRINT 'TEST FALLIDO - El estado no fue actualizado correctamente.';
+ 
+		DELETE FROM transacciones.FACTURA WHERE id_factura = @id_factura;
+        
+
+    END TRY
+
+    BEGIN CATCH
+        -- En caso de error, revertir la transacción y mostrar un mensaje de error
+        PRINT 'Error durante la prueba: ' + ERROR_MESSAGE();
+    END CATCH
+
+
+
+END;
+GO
+
+EXEC actualizaciones.TestActualizarFactura;
+GO
+
+CREATE OR ALTER PROCEDURE actualizaciones.TestActualizarNotaCredito
+AS
+BEGIN
+
+    -- Declarar variables para almacenar el resultado de la prueba
+    DECLARE @resultadoEstado BIT,
+			@id_factura INT,
+			@id_factura_actualizado INT,
+			@id_prueba CHAR(11) = '999-99-9999',
+			@id_nota_credito INT,
+			@monto DECIMAL = 100,
+			@monto_nuevo DECIMAL = 500,
+			@monto_actualizado DECIMAL;
+
+	 BEGIN TRY
+
+		-- Insertar un registro de prueba en la tabla FACTURA
+		INSERT INTO transacciones.FACTURA (id, tipo_de_factura, estado)
+		VALUES (@id_prueba, 'A', 0); 
+		SET @id_factura = SCOPE_IDENTITY();
+
+		INSERT INTO transacciones.NOTA_CREDITO (monto, id_factura)
+		VALUES (@monto, @id_factura);
+		SET @id_nota_credito = SCOPE_IDENTITY();
+
+
+		SELECT * FROM transacciones.NOTA_CREDITO WHERE @id_nota_credito =  @id_nota_credito;
+		
+		EXEC actualizaciones.actualizarNotaCredito 
+		@id = @id_nota_credito, 
+		@monto = @monto_nuevo;
+
+		SELECT * FROM transacciones.NOTA_CREDITO WHERE @id_nota_credito =  @id_nota_credito;
+		
+		SELECT @monto_actualizado = monto, @id_factura_actualizado = id_factura FROM transacciones.NOTA_CREDITO
+
+		IF (@monto_actualizado = @monto_nuevo AND @id_factura_actualizado = @id_factura)			PRINT 'TEST PASADO - Actualizacion de NOTA DE CREDITO exitosa'
+		ELSE 
+			PRINT 'TEST FALLIDO - Error en la actualización de nota de crédito';
+		
+
+	END TRY
+
+	BEGIN CATCH
+		PRINT 'ERROR EN EL TEST - Error inesperado en la insercion de los datos o ejecución del procedure';
+	END CATCH
+
+	DELETE FROM transacciones.NOTA_CREDITO WHERE id = @id_nota_credito;
+	DELETE FROM transacciones.FACTURA WHERE @id_factura = @id_factura;
+
+END;
+GO
+
+EXEC actualizaciones.TestActualizarNotaCredito;
+GO
+
+CREATE OR ALTER PROCEDURE actualizaciones.TestActualizarTipo
+AS
+BEGIN
+    -- Declarar variables para el ID del registro de prueba y el resultado esperado
+    DECLARE @idPrueba INT;
+    DECLARE @nombrePruebaOriginal VARCHAR(50) = 'NombrePrueba';
+    DECLARE @nombreActualizado VARCHAR(50) = 'NombreActualizado';
+    DECLARE @nombreResultado VARCHAR(50);
+
+    BEGIN TRY
+        INSERT INTO seguridad.TIPO (nombre)
+        VALUES (@nombrePruebaOriginal);
+
+        -- Obtener el ID del registro insertado
+        SET @idPrueba = SCOPE_IDENTITY();
+
+		SELECT * FROM seguridad.TIPO WHERE id = @idPrueba;
+
+        EXEC actualizaciones.ActualizarTipo
+            @id = @idPrueba,
+            @nombre = @nombreActualizado;
+
+		SELECT * FROM seguridad.TIPO WHERE id = @idPrueba;
+
+        SELECT @nombreResultado = nombre
+        FROM seguridad.TIPO
+        WHERE id = @idPrueba;
+
+		
+        -- Comparar el resultado con el valor esperado y devolver un mensaje
+        IF @nombreResultado = @nombreActualizado
+        BEGIN
+            PRINT 'TEST PASADO - Actualizacion de TIPO de cliente exitosa.';
+        END
+        ELSE
+        BEGIN
+            PRINT 'TEST FALLIDO - El tipo de cliente no fue actualizado correctamente.';
+        END
+
+        -- Eliminar el registro de prueba
+        DELETE FROM seguridad.TIPO WHERE id = @idPrueba;
+        
+    END TRY
+
+    BEGIN CATCH
+        -- Mostrar un mensaje de error en caso de falla
+        PRINT 'Error durante la prueba: ' + ERROR_MESSAGE();
+    END CATCH
+END;
+GO
+
+EXEC actualizaciones.TestActualizarTipo;
+GO
+
+
+CREATE OR ALTER PROCEDURE actualizaciones.TestActualizarCliente
+AS
+BEGIN
+    DECLARE @id_tipo INT;
+    DECLARE @id_cliente INT;
+    DECLARE @nuevo_genero VARCHAR(6) = 'male';
+    DECLARE @genero_actual VARCHAR(6);
+    DECLARE @id_tipo_actual INT;
+
+    BEGIN TRY
+        -- Insertar un registro de prueba en TIPO y capturar el ID
+        INSERT INTO seguridad.TIPO (nombre) VALUES ('Tipo de prueba');
+        SET @id_tipo = SCOPE_IDENTITY();
+
+        -- Insertar un registro de prueba en CLIENTE y capturar el ID
+        INSERT INTO seguridad.CLIENTE (genero, id_tipo) VALUES ('female', @id_tipo);
+        SET @id_cliente = SCOPE_IDENTITY();
+
+		SELECT * FROM seguridad.CLIENTE WHERE id = @id_cliente;
+
+        -- Ejecutar el procedimiento de actualización para cambiar el género a 'male'
+        EXEC actualizaciones.ActualizarCliente @id = @id_cliente, @genero = @nuevo_genero;
+
+        -- Verificar que el género se haya actualizado correctamente y que id_tipo se mantenga igual
+        SELECT @genero_actual = genero, @id_tipo_actual = id_tipo 
+        FROM seguridad.CLIENTE 
+        WHERE id = @id_cliente;
+
+		SELECT * FROM seguridad.CLIENTE WHERE id = @id_cliente;
+
+        IF @genero_actual = @nuevo_genero AND @id_tipo_actual = @id_tipo
+        BEGIN
+            PRINT 'TEST PASADO - Actualizacion de CLIENTE exitosa.';
+        END
+        ELSE
+        BEGIN
+            PRINT 'TEST FALLIDO - Error en la actualizacion de cliente.';
+        END
+
+    END TRY
+    BEGIN CATCH
+        PRINT 'TEST PROBLEM - Error inesperado durante la insercion de datos o ejecucion del procedure.';
+    END CATCH
+
+    -- Limpiar los datos de prueba
+    DELETE FROM seguridad.CLIENTE WHERE id = @id_cliente;
+    DELETE FROM seguridad.TIPO WHERE id = @id_tipo;
+
+END;
+GO
+
+EXEC actualizaciones.TestActualizarCliente;
+GO
+

@@ -21,6 +21,9 @@ IF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = 'actualizaciones')
     EXEC('CREATE SCHEMA actualizaciones');
 GO
 
+SET NOCOUNT ON;
+GO
+
 -- Stored Procedure para actualizar la tabla CARGO
 CREATE OR ALTER PROCEDURE actualizaciones.ActualizarCargo
     @id INT,
@@ -159,7 +162,8 @@ GO
 
 -- Stored Procedure para actualizar la tabla FACTURA
 CREATE OR ALTER PROCEDURE actualizaciones.ActualizarFactura
-    @id CHAR(11),
+    @id_factura INT,
+    @id CHAR(11) = NULL,
     @tipo_de_factura CHAR = NULL,
     @estado BIT = NULL
 AS
@@ -168,7 +172,7 @@ BEGIN
     SET 
         tipo_de_factura = COALESCE(@tipo_de_factura, tipo_de_factura),
         estado = COALESCE(@estado, estado)
-    WHERE id = @id;
+    WHERE id_factura = @id_factura;
 END;
 GO
 
@@ -280,4 +284,18 @@ BEGIN
     WHERE id_producto = @id_producto;
 END;
 GO
+
+CREATE OR ALTER PROCEDURE actualizaciones.ActualizarTipo
+	@id INT,
+	@nombre VARCHAR(50)
+AS
+BEGIN
+
+	UPDATE seguridad.TIPO 
+	SET nombre = @nombre
+	WHERE id = @id;
+END;
+GO
+
+
 
