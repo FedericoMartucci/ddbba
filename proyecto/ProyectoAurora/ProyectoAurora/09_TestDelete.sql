@@ -22,6 +22,15 @@ SET NOCOUNT ON;
 
 GO
 
+-- DEFINO UN CODIGO DE ERROR CON UN MENSAJE ASOCIADO
+
+EXEC sp_addmessage @msgnum = 130001, 
+                   @severity = 16, 
+                   @msgtext = 'No se puede eliminar el cliente porque no existe.',
+                   @replace = 'REPLACE';
+GO
+
+
 -- TEST BORRADO LOGICO EN CASCADA DE CATEGORIA -> PRODUCTO -> IMPORTADO
 CREATE OR ALTER PROCEDURE borrado.TestEliminarCategoriaHastaImportadoLogico
 AS
@@ -722,21 +731,36 @@ BEGIN
         PRINT 'TEST FALLIDO - No se produjo error al intentar eliminar un cargo inexistente.';
     END TRY
     BEGIN CATCH
-        PRINT 'TEST PASADO - Error esperado al intentar eliminar cargo inexistente.';
+        -- Comparar el número de error con 130001
+        IF ERROR_NUMBER() = 130001
+        BEGIN
+            PRINT 'TEST PASADO - Error esperado al intentar eliminar cargo inexistente con código de error 130001.';
+        END
+        ELSE
+        BEGIN
+            PRINT 'TEST FALLIDO - Error no esperado. Número de error: ' + CAST(ERROR_NUMBER() AS VARCHAR(10));
+        END
     END CATCH
 
     -- Insertar cargo de prueba inactivo
     INSERT INTO seguridad.CARGO (nombre, es_valido) VALUES ('Cargo Inactivo', 0);
     DECLARE @id INT = SCOPE_IDENTITY();
 
-
     -- Intentar ejecutar el procedimiento de eliminación lógica en un cargo inactivo
     BEGIN TRY
         EXEC borrado.EliminarCargoLogico @id;
-        PRINT 'TEST FALLIDO - No se produjo error al intentar eliminar un cargo inexistente.';
+        PRINT 'TEST FALLIDO - No se produjo error al intentar eliminar un cargo inactivo.';
     END TRY
     BEGIN CATCH
-        PRINT 'TEST PASADO - Error esperado al intentar eliminar cargo inactivo.';
+        -- Comparar el número de error con 130001
+        IF ERROR_NUMBER() = 130001
+        BEGIN
+            PRINT 'TEST PASADO - Error esperado al intentar eliminar cargo inactivo con código de error 130001.';
+        END
+        ELSE
+        BEGIN
+            PRINT 'TEST FALLIDO - Error no esperado. Número de error: ' + CAST(ERROR_NUMBER() AS VARCHAR(10));
+        END
     END CATCH
 
     -- Limpiar datos de prueba
@@ -744,6 +768,7 @@ BEGIN
 
 END;
 GO
+
 
 -- Ejecutar el test
 EXEC borrado.TestEliminarCargoLogico_InactivoOInexistente;
@@ -845,20 +870,34 @@ GO
 CREATE OR ALTER PROCEDURE borrado.TestEliminarSucursalNoActivaOInexistente
 AS
 BEGIN
-        -- Obtengo el máximo id de la tabla y le sumo 1 para generar un id que no exista
-        DECLARE @id_inexistente INT;
-        SELECT @id_inexistente = ISNULL(MAX(id), 0) + 1 FROM seguridad.SUCURSAL;
+    -- Obtengo el máximo id de la tabla y le sumo 1 para generar un id que no exista
+    DECLARE @id_inexistente INT;
+    SELECT @id_inexistente = ISNULL(MAX(id), 0) + 1 FROM seguridad.SUCURSAL;
 
     -- Intentar eliminar una sucursal inexistente (usando el máximo id + 1)
     BEGIN TRY
         -- Intento eliminar una sucursal con un id que no existe (id máximo + 1)
+
+		-- Muestra que no hay registros con ese id
+        SELECT * FROM seguridad.SUCURSAL WHERE id = @id_inexistente;
+
         EXEC borrado.EliminarSucursalLogico @id_inexistente;
         
         -- Si no lanza error, el test ha fallado
         PRINT 'TEST FALLIDO - No se produjo error al intentar eliminar una sucursal inexistente.';
     END TRY
     BEGIN CATCH
-        PRINT 'TEST PASADO - Error esperado al intentar eliminar una sucursal inexistente';
+        -- Comparar el número de error con 130001
+        IF ERROR_NUMBER() = 130001
+        BEGIN
+            PRINT 'TEST PASADO - Error esperado al intentar eliminar una sucursal inexistente con código de error 130001.';
+	
+		END
+        
+		ELSE
+        BEGIN
+            PRINT 'TEST FALLIDO - Error no esperado. Número de error: ' + CAST(ERROR_NUMBER() AS VARCHAR(10));
+        END
     END CATCH
 
     -- Intentar eliminar una sucursal no activa
@@ -873,19 +912,31 @@ BEGIN
 
         -- Intento eliminar lógicamente la sucursal (debería lanzar error)
         EXEC borrado.EliminarSucursalLogico @id_sucursal;
+
+        -- Muestra el registro eliminado
+        SELECT * FROM seguridad.SUCURSAL WHERE id = @id_sucursal;
         
+	
         -- Si no lanza error, el test ha fallado
         PRINT 'TEST FALLIDO - No se produjo error al intentar eliminar una sucursal no activa.';
     END TRY
-
     BEGIN CATCH
-        PRINT 'TEST PASADO - Error esperado al intentar eliminar una sucursal no activa.';
+        -- Comparar el número de error con 130001
+        IF ERROR_NUMBER() = 130001
+        BEGIN
+            PRINT 'TEST PASADO - Error esperado al intentar eliminar una sucursal no activa con código de error 130001.';
+        END
+        ELSE
+        BEGIN
+            PRINT 'TEST FALLIDO - Error no esperado. Número de error: ' + CAST(ERROR_NUMBER() AS VARCHAR(10));
+        END
     END CATCH
 
     -- Elimino los datos de prueba físicamente si es necesario
     DELETE FROM seguridad.SUCURSAL WHERE id = @id_sucursal;
 END;
 GO
+
 
 -- EJECUTAR EL TEST
 EXEC borrado.TestEliminarSucursalNoActivaOInexistente;
@@ -993,39 +1044,52 @@ GO
 EXEC borrado.TestEliminarEmpleadoNoExistenteOInactivo;
 GO
 
--- TEST DE ELIMINACIÓN FÍSICA DE TELÉFONO (CASO DE ÉXITO)
-CREATE OR ALTER PROCEDURE borrado.TestEliminarTelefonoFisico_Exitoso
+-- TEST DELETE TELEFONO ÉXITO
+CREATE OR ALTER PROCEDURE borrado.TestEliminarTelefonoFisico
 AS
 BEGIN
-    -- Inserto una sucursal de prueba activa
-    INSERT INTO seguridad.SUCURSAL (horario, ciudad, reemplazar_por, direccion, codigo_postal, provincia, es_valido)
-    VALUES ('9:00-18:00', 'Ciudad de prueba', 'Reemplazo prueba', 'Calle de prueba 123', '54321', 'Provincia de Prueba', 1);
-    DECLARE @id_sucursal INT = SCOPE_IDENTITY();  -- Capturo el ID de la sucursal insertada
+    SET NOCOUNT ON;
+    DECLARE @id_sucursal INT,
+			@telefono_prueba CHAR (9) = '1234-5678';
 
-    -- Inserto un teléfono de prueba asociado a la sucursal
-    INSERT INTO seguridad.TELEFONO (id_sucursal, telefono)
-    VALUES (@id_sucursal, '1234-5678');
+	-- Insertar sucursal de prueba
+    INSERT INTO seguridad.SUCURSAL (horario, ciudad, reemplazar_por, direccion, codigo_postal, provincia)
+    VALUES ('9:00-18:00', 'Ciudad de Prueba', 'Reemplazo prueba', 'Calle Falsa 123', '12345', 'Provincia de Prueba');
+    
+	SET @id_sucursal = SCOPE_IDENTITY();
 
-    -- Verifico que el teléfono se ha insertado
-    SELECT * FROM seguridad.TELEFONO WHERE id_sucursal = @id_sucursal;
 
-    -- Intento eliminar el teléfono asociado a la sucursal
-    EXEC borrado.EliminarTelefonoFisico @id_sucursal = @id_sucursal;
+    -- Insertar dato de prueba en la tabla TELEFONO
+	INSERT INTO seguridad.TELEFONO (id_sucursal, telefono) VALUES (@id_sucursal, @telefono_prueba);
+		
+	SELECT * FROM seguridad.TELEFONO WHERE id_sucursal = @id_sucursal AND telefono = @telefono_prueba;
 
-    -- Verifico que el teléfono ha sido eliminado
-    IF NOT EXISTS (SELECT 1 FROM seguridad.TELEFONO WHERE id_sucursal = @id_sucursal)
-        PRINT 'TEST PASADO - Eliminación física de teléfono exitosa.';
-    ELSE
-        PRINT 'TEST FALLIDO - No se pudo eliminar el teléfono.';
+    BEGIN TRY
+        -- Ejecutar el procedimiento de eliminación
+        EXEC borrado.EliminarTelefonoFisico @id_sucursal = @id_sucursal;
 
-    -- Elimino los datos de prueba
-    DELETE FROM seguridad.TELEFONO WHERE id_sucursal = @id_sucursal;
-    DELETE FROM seguridad.SUCURSAL WHERE id = @id_sucursal;
+        -- Verificar si el registro fue eliminado
+        IF NOT EXISTS (SELECT 1 FROM seguridad.TELEFONO WHERE id_sucursal = @id_sucursal AND telefono = @telefono_prueba)
+        BEGIN
+            PRINT 'TEST PASADO - Eliminación física de TELEFONO exitosa';
+			SELECT * FROM seguridad.TELEFONO WHERE id_sucursal = @id_sucursal AND telefono = @telefono_prueba;
+
+        END
+        ELSE
+        BEGIN
+            PRINT 'TEST FALLIDO - Error en la eliminación de teléfono';
+        END
+    END TRY
+    BEGIN CATCH
+        -- Capturar y mostrar el error si ocurre
+        PRINT 'TEST FALLIDO - Error al ejecutar Eliminación Física de TELEFONO';
+        PRINT ERROR_MESSAGE();
+    END CATCH;
 END;
 GO
 
--- Ejecutar el test
-EXEC borrado.TestEliminarTelefonoFisico_Exitoso;
+-- Ejecutar la prueba
+EXEC borrado.TestEliminarTelefonoFisico;
 GO
 
 -- TEST DE ELIMINACIÓN FÍSICA DE TELÉFONO NO EXISTENTE (CASO DE FALLA)
@@ -1058,6 +1122,7 @@ GO
 EXEC borrado.TestEliminarTelefonoFisico_Fallido;
 GO
 
+-- TEST DELETE VENTA
 CREATE OR ALTER PROCEDURE borrado.TestEliminarVentaFisico
 AS
 BEGIN
@@ -1094,7 +1159,7 @@ BEGIN
 
 		-- Insertar una factura de prueba
 		INSERT INTO transacciones.FACTURA (id, tipo_de_factura, estado)
-		VALUES ('999-99-9997', 'A', 1);
+		VALUES ('000-00-0000', 'A', 1);
 		SET @id_factura = SCOPE_IDENTITY();  -- Obtener el ID de la factura insertada
 
 		-- Obtener el máximo legajo y sumarle 1
@@ -1106,8 +1171,8 @@ BEGIN
 		SET @id_empleado = SCOPE_IDENTITY();  -- Obtener el ID del empleado insertado
 
 		-- Insertar una venta de prueba
-		INSERT INTO transacciones.VENTA (id_factura, id_sucursal, id_producto, cantidad, fecha, hora, id_medio_de_pago, legajo, identificador_de_pago)
-		VALUES (@id_factura, @id_sucursal, @id_producto, 5, '2024-11-13', '14:35:00', @id_medio_pago, @legajo, '1111222233334444555566');
+		INSERT INTO transacciones.VENTA (id_factura, id_sucursal, id_producto, cantidad, fecha, hora, id_medio_de_pago, id_empleado, identificador_de_pago)
+		VALUES (@id_factura, @id_sucursal, @id_producto, 5, '2024-11-13', '14:35:00', @id_medio_pago, @id_empleado, '1111222233334444555566');
 		SET @id_venta = SCOPE_IDENTITY();  -- Obtener el ID de la venta insertada
 
 	END TRY
@@ -1140,11 +1205,114 @@ BEGIN
     DELETE FROM productos.PRODUCTO WHERE id_producto = @id_producto;
     DELETE FROM seguridad.CATEGORIA WHERE id = @id_categoria;
     DELETE FROM transacciones.MEDIO_DE_PAGO WHERE id = @id_medio_pago;
-    DELETE FROM transacciones.FACTURA WHERE id = @id_factura;
+    DELETE FROM transacciones.FACTURA WHERE @id_factura = @id_factura;
     DELETE FROM seguridad.CLIENTE WHERE id = @id_cliente;
 END;
 GO
 
-
+-- EJECUTO EL TEST
 EXEC borrado.TestEliminarVentaFisico;
 GO
+
+-- TEST ELIMINAR CLIENTE QUE NO EXISTE (DEBE DAR ERROR)
+CREATE OR ALTER PROCEDURE borrado.TestEliminarClienteInexistente
+AS
+BEGIN
+    SET NOCOUNT ON;
+    DECLARE @id_cliente_inexistente INT = -1;  -- ID que no existe en CLIENTE
+
+    BEGIN TRY
+        -- Intentar ejecutar el procedimiento de eliminación con un cliente inexistente
+        EXEC borrado.EliminarClienteFisico @id_cliente = @id_cliente_inexistente;
+
+        -- Si no se lanza el error, el test falla
+        PRINT 'TEST FALLIDO - No se generó error al intentar eliminar un cliente inexistente';
+    END TRY
+    BEGIN CATCH
+        -- Capturar y verificar el número y mensaje de error
+    SELECT 
+        ERROR_NUMBER() AS NumeroDeError,
+        ERROR_MESSAGE() AS MensajeDeError;
+
+        IF ERROR_NUMBER() = 130001
+        BEGIN
+            PRINT 'TEST PASADO - Error capturado con el número correcto (13001) al intentar eliminar un cliente inexistente';
+        END
+        ELSE
+        BEGIN
+            PRINT 'TEST FALLIDO - Número de error inesperado: ' + CAST(ERROR_NUMBER() AS VARCHAR(10));
+        END
+    END CATCH;
+END;
+GO
+
+-- Ejecutar la prueba
+EXEC borrado.TestEliminarClienteInexistente;
+GO
+
+-- Test de eliminación física exitosa
+CREATE OR ALTER PROCEDURE borrado.TestEliminarTipoFisicoExitoso
+AS
+BEGIN
+    -- Insertar un tipo de prueba
+    INSERT INTO seguridad.TIPO (nombre) VALUES ('Tipo de Cliente Prueba');
+    DECLARE @id INT = SCOPE_IDENTITY();  -- Obtener el ID del tipo insertado
+
+    BEGIN TRY
+        -- Intentar eliminar físicamente el tipo
+        EXEC borrado.EliminarTipoFisico @id;
+        
+        -- Verificar si el tipo fue realmente eliminado
+        IF NOT EXISTS (SELECT 1 FROM seguridad.TIPO WHERE id = @id)
+        BEGIN
+            PRINT 'TEST PASADO - Tipo eliminado físicamente con éxito.';
+        END
+        ELSE
+        BEGIN
+            PRINT 'TEST FALLIDO - No se pudo eliminar físicamente el tipo.';
+        END
+    END TRY
+    BEGIN CATCH
+        PRINT 'TEST FALLIDO - Error inesperado: ' + ERROR_MESSAGE();
+    END CATCH
+END;
+GO
+
+EXEC borrado.TestEliminarTipoFisicoExitoso;
+GO
+
+-- Test de eliminación física fallida por tipo inexistente (debe dar error 130001)
+CREATE OR ALTER PROCEDURE borrado.TestEliminarTipoFisicoError
+AS
+BEGIN
+    -- Intentar eliminar un tipo con un id que no existe
+    DECLARE @id_inexistente INT;
+    SELECT @id_inexistente = ISNULL(MAX(id), 0) + 1 FROM seguridad.TIPO;  -- Generar un id inexistente
+
+    BEGIN TRY
+        -- Intentar eliminar el tipo inexistente
+        EXEC borrado.EliminarTipoFisico @id_inexistente;
+        
+        PRINT 'TEST FALLIDO - No se produjo error al intentar eliminar un tipo inexistente.';
+    END TRY
+    BEGIN CATCH
+        -- Verificar si el código de error es 130001
+        IF ERROR_NUMBER() = 130001
+        BEGIN
+            PRINT 'TEST PASADO - Error esperado al intentar eliminar un tipo inexistente con código de error ' + CAST(ERROR_NUMBER() AS VARCHAR (15));
+        END
+        ELSE
+        BEGIN
+            PRINT 'TEST FALLIDO - Error no esperado. Número de error: ' + CAST(ERROR_NUMBER() AS VARCHAR(10));
+        END
+    END CATCH
+END;
+GO
+
+EXEC borrado.TestEliminarTipoFisicoError;
+
+
+
+
+
+

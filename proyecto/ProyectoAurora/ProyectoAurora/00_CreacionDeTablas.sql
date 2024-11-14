@@ -13,6 +13,7 @@
 #															#
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 */
+
 -- CREACION DE LA BASE DE DATOS 'Com5600G08'
 IF NOT EXISTS (SELECT * FROM sys.databases WHERE name = 'Com5600G08')
 BEGIN
@@ -117,7 +118,8 @@ END;
 IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'seguridad.EMPLEADO') AND type in (N'U'))
 BEGIN
     CREATE TABLE seguridad.EMPLEADO (
-        legajo INT CONSTRAINT PK_EMPLEADO_LEGAJO PRIMARY KEY,
+		id_empleado INT IDENTITY(1,1) CONSTRAINT PK_EMPLEADO_ID PRIMARY KEY, 
+        legajo INT UNIQUE,
         nombre VARCHAR(50) NOT NULL,
         apellido VARCHAR(50) NOT NULL,
         dni INT NOT NULL,
@@ -214,7 +216,8 @@ END;
 IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'transacciones.FACTURA') AND type in (N'U'))
 BEGIN
     CREATE TABLE transacciones.FACTURA (
-        id CHAR(11) CHECK (id LIKE '[0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9][0-9][0-9]') CONSTRAINT PK_FACTURA_ID PRIMARY KEY,
+		id_factura INT IDENTITY(1,1) CONSTRAINT PK_FACTURA_ID PRIMARY KEY,
+        id CHAR(11) CHECK (id LIKE '[0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9][0-9][0-9]'),
         tipo_de_factura CHAR CHECK(tipo_de_factura IN('A', 'B', 'C')) NOT NULL,
 		estado BIT NOT NULL DEFAULT 1 -- 1 para 'pagada' y 0 para 'no pagada'
 	);
@@ -226,8 +229,8 @@ BEGIN
     CREATE TABLE transacciones.NOTA_CREDITO (
         id INT IDENTITY(1, 1) CONSTRAINT PK_NOTA_CREDITO_ID PRIMARY KEY,        
         monto DECIMAL (10, 2),
-        id_factura CHAR(11) CHECK (id_factura LIKE '[0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9][0-9][0-9]'),
-        CONSTRAINT FK_ID_FACTURA FOREIGN KEY (id_factura) REFERENCES transacciones.FACTURA(id)
+        id_factura INT,
+        CONSTRAINT FK_ID_FACTURA FOREIGN KEY (id_factura) REFERENCES transacciones.FACTURA(id_factura)
         ON DELETE CASCADE
         ON UPDATE CASCADE
     );
@@ -249,20 +252,20 @@ IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'transacci
 BEGIN
     CREATE TABLE transacciones.VENTA (
         id INT IDENTITY(1, 1) CONSTRAINT PK_VENTA_ID PRIMARY KEY,
-        id_factura CHAR(11) CHECK (id_factura LIKE '[0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9][0-9][0-9]'),
+        id_factura INT,
         id_sucursal INT,
         id_producto INT,
         cantidad SMALLINT  NOT NULL, --maximo 32767 y minimo -32768
         fecha DATE NOT NULL,
         hora TIME(0) NOT NULL,
         id_medio_de_pago INT,
-        legajo INT,
+        id_empleado INT,
         identificador_de_pago VARCHAR(22)
         CHECK
         (
             (LEN(identificador_de_pago) = 22 AND identificador_de_pago NOT LIKE '%[^0-9]%') OR identificador_de_pago IS NULL
         ),
-        CONSTRAINT FK_ID_FACTURA_VENTA_FACTURA FOREIGN KEY (id_factura) REFERENCES transacciones.FACTURA(id)
+        CONSTRAINT FK_ID_FACTURA_VENTA_FACTURA FOREIGN KEY (id_factura) REFERENCES transacciones.FACTURA(id_factura)
         ON DELETE CASCADE
         ON UPDATE CASCADE,
         CONSTRAINT FK_ID_SUCURSAL_VENTA_SUCURSAL FOREIGN KEY (id_sucursal) REFERENCES seguridad.SUCURSAL(id)
@@ -274,9 +277,11 @@ BEGIN
         CONSTRAINT FK_ID_MEDIO_DE_PAGO_VENTA_MEDIO_DE_PAGO FOREIGN KEY (id_medio_de_pago) REFERENCES transacciones.MEDIO_DE_PAGO(id)
         ON DELETE CASCADE
         ON UPDATE CASCADE,
-        CONSTRAINT FK_LEGAJO_VENTA_EMPLEADO FOREIGN KEY (legajo) REFERENCES seguridad.EMPLEADO(legajo)
+        CONSTRAINT FK_LEGAJO_VENTA_EMPLEADO FOREIGN KEY (id_empleado) REFERENCES seguridad.EMPLEADO(id_empleado)
         --ON DELETE CASCADE
         --ON UPDATE CASCADE
     );
 END;
+
+
 

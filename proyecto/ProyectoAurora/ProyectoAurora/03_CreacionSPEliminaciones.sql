@@ -22,7 +22,6 @@ IF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = 'borrado')
     EXEC('CREATE SCHEMA borrado');
 GO
 
-
 -- Store Procedure para eliminación lógica en CATEGORIA (con borrado en cascada en PRODUCTO)
 CREATE OR ALTER PROCEDURE borrado.EliminarCategoriaLogico
     @id_categoria INT
@@ -34,7 +33,7 @@ BEGIN
         -- Verificar si la categoría existe y está activa
         IF NOT EXISTS (SELECT 1 FROM seguridad.CATEGORIA WHERE id = @id_categoria AND es_valido = 1)
         BEGIN
-            RAISERROR('La categoría no existe o ya está inactiva.', 16, 1);
+            RAISERROR(130001, 16, 1);
             RETURN;
         END
 
@@ -79,14 +78,14 @@ BEGIN
     -- Verificar si el cargo existe y está activo
     IF NOT EXISTS (SELECT 1 FROM seguridad.CARGO WHERE id = @id_cargo AND es_valido = 1)
     BEGIN
-        RAISERROR('El cargo no existe o ya está inactivo.', 16, 1);
+        RAISERROR(130001, 16, 1);
         RETURN;
     END
 
     -- Verificar si hay empleados asociados al cargo
     IF EXISTS (SELECT 1 FROM seguridad.EMPLEADO WHERE id_cargo = @id_cargo AND es_valido = 1)
     BEGIN
-        RAISERROR('No se puede eliminar el cargo porque existen empleados activos asociados a él.', 16, 1);
+        RAISERROR(130001, 16, 1);
         RETURN;
     END
 
@@ -108,7 +107,7 @@ BEGIN
     IF NOT EXISTS (SELECT 1 FROM seguridad.SUCURSAL WHERE id = @id_sucursal AND es_valido = 1)
     BEGIN
         -- Lanzar un error si la sucursal no existe o no está activa
-        RAISERROR ('No se encontró sucursal activa con ese id.', 16, 1);
+        RAISERROR(130001, 16, 1);
         RETURN;
     END
 
@@ -116,7 +115,7 @@ BEGIN
     IF EXISTS (SELECT 1 FROM seguridad.EMPLEADO WHERE id_sucursal = @id_sucursal AND es_valido = 1)
     BEGIN
         -- Lanzar un error si existen empleados en la sucursal
-        RAISERROR ('No se puede eliminar la sucursal porque existen empleados que trabajan en ella.', 16, 1);
+        RAISERROR(130001, 16, 1);
         RETURN;
     END
 
@@ -138,7 +137,7 @@ BEGIN
     IF NOT EXISTS (SELECT 1 FROM seguridad.TELEFONO WHERE id_sucursal = @id_sucursal)
     BEGIN
         -- Lanzar un error si no existe el teléfono
-        RAISERROR('No se puede eliminar el teléfono porque no existe para esta sucursal.', 16, 1);
+        RAISERROR(130001, 16, 1);
         RETURN;
     END
 
@@ -159,7 +158,7 @@ BEGIN
     IF NOT EXISTS (SELECT 1 FROM seguridad.EMPLEADO WHERE legajo = @legajo AND es_valido = 1)
     BEGIN
         -- Lanzar un error si el empleado no está activo
-        RAISERROR ('No se puede eliminar el empleado porque no está activo o no existe.', 16, 1);
+        RAISERROR(130001, 16, 1);
         RETURN;
     END
 
@@ -181,7 +180,7 @@ BEGIN
     -- Verificar si la nota de crédito existe
     IF NOT EXISTS (SELECT 1 FROM transacciones.NOTA_CREDITO WHERE id = @id)
     BEGIN
-        RAISERROR('La nota de crédito no existe.', 16, 1);
+        RAISERROR(130001, 16, 1);
         RETURN;
     END
 
@@ -199,7 +198,7 @@ BEGIN
     -- Verificar si la factura existe
     IF NOT EXISTS (SELECT 1 FROM transacciones.FACTURA WHERE id = @id_factura)
     BEGIN
-        RAISERROR('La factura no existe.', 16, 1);
+        RAISERROR(130001, 16, 1);
         RETURN;
     END
 
@@ -217,7 +216,7 @@ BEGIN
     -- Verificar si el medio de pago existe
     IF NOT EXISTS (SELECT 1 FROM transacciones.MEDIO_DE_PAGO WHERE id = @id_medio)
     BEGIN
-        RAISERROR('El medio de pago no existe.', 16, 1);
+        RAISERROR(130001, 16, 1);
         RETURN;
     END
 
@@ -235,7 +234,7 @@ BEGIN
     -- Verificar si la venta existe
     IF NOT EXISTS (SELECT 1 FROM transacciones.VENTA WHERE id = @id_venta)
     BEGIN
-        RAISERROR('La venta no existe.', 16, 1);
+        RAISERROR(130001, 16, 1);
         RETURN;
     END
 
@@ -253,7 +252,7 @@ BEGIN
     -- Verificar si el producto existe y está activo
     IF NOT EXISTS (SELECT 1 FROM productos.IMPORTADO WHERE id_producto = @id_producto AND es_valido = 1)
     BEGIN
-        RAISERROR('El producto no existe o ya está inactivo.', 16, 1);
+        RAISERROR(130001, 16, 1);
         RETURN;
     END
 
@@ -272,7 +271,7 @@ BEGIN
     -- Verificar si el producto existe y está activo
     IF NOT EXISTS (SELECT 1 FROM productos.VARIOS WHERE id_producto = @id_producto AND es_valido = 1)
     BEGIN
-        RAISERROR('El producto no existe o ya está inactivo.', 16, 1);
+        RAISERROR(130001, 16, 1);
         RETURN;
     END
 
@@ -291,7 +290,7 @@ BEGIN
     -- Verificar si el producto existe y está activo
     IF NOT EXISTS (SELECT 1 FROM productos.ELECTRONICO WHERE id_producto = @id_producto AND es_valido = 1)
     BEGIN
-        RAISERROR('El producto no existe o ya está inactivo.', 16, 1);
+        RAISERROR(130001, 16, 1);
         RETURN;
     END
 
@@ -300,3 +299,46 @@ BEGIN
     WHERE id_producto = @id_producto;
 END;
 GO
+
+
+
+
+CREATE OR ALTER PROCEDURE borrado.EliminarClienteFisico
+    @id_cliente INT
+AS
+BEGIN
+    -- Verificar si el cliente existe
+    IF NOT EXISTS (SELECT 1 FROM seguridad.CLIENTE WHERE id = @id_cliente)
+    BEGIN
+        -- Lanzar un error si el cliente no existe
+        RAISERROR(130001, 16, 1);
+        RETURN;
+    END
+
+    -- Realizar la eliminación física
+    DELETE FROM seguridad.CLIENTE
+    WHERE id = @id_cliente;
+
+END;
+GO
+
+
+-- Procedimiento para eliminar físicamente un registro de la tabla TIPO
+CREATE OR ALTER PROCEDURE borrado.EliminarTipoFisico
+    @id INT
+AS
+BEGIN
+        -- Verificamos si el tipo existe
+        IF NOT EXISTS (SELECT 1 FROM seguridad.TIPO WHERE id = @id)
+        BEGIN
+            RAISERROR(130001, 16, 1);  -- Error si no existe el tipo
+			RETURN;
+        END
+
+        -- Si pasa la validación, eliminamos el tipo de manera física
+        DELETE FROM seguridad.TIPO WHERE id = @id;
+
+
+END;
+GO
+
