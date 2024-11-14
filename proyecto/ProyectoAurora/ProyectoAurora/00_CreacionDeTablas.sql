@@ -243,7 +243,8 @@ BEGIN
     CREATE TABLE transacciones.MEDIO_DE_PAGO (
         id INT IDENTITY(1, 1) CONSTRAINT PK_MEDIO_DE_PAGO_ID PRIMARY KEY,
         descripcion_ingles VARCHAR(50) NOT NULL,
-		descripcion VARCHAR(50) NOT NULL
+		descripcion VARCHAR(50) NOT NULL,
+		es_valido BIT NOT NULL DEFAULT 1
     );
 END;
 
