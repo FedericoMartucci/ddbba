@@ -51,7 +51,6 @@ BEGIN
 END;
 GO
 
-
 -- Stored Procedure para actualizar la tabla CATEGORIA
 CREATE OR ALTER PROCEDURE actualizaciones.ActualizarCategoria
     @id INT,
@@ -89,7 +88,6 @@ BEGIN
     WHERE id = @id;
 END;
 GO
-
 
 -- Stored Procedure para actualizar la tabla TELEFONO
 CREATE OR ALTER PROCEDURE actualizaciones.ActualizarTelefono
@@ -137,7 +135,6 @@ BEGIN
 END;
 GO
 
-
 -- Stored Procedure para actualizar la tabla PRODUCTO
 CREATE OR ALTER PROCEDURE actualizaciones.ActualizarProducto
     @id_producto INT,
@@ -159,7 +156,6 @@ BEGIN
 END;
 GO
 
-
 -- Stored Procedure para actualizar la tabla FACTURA
 CREATE OR ALTER PROCEDURE actualizaciones.ActualizarFactura
     @id_factura INT,
@@ -176,7 +172,6 @@ BEGIN
 END;
 GO
 
-
 -- Stored Procedure para actualizar la tabla NOTA_CREDITO
 CREATE OR ALTER PROCEDURE actualizaciones.ActualizarNotaCredito
     @id INT,
@@ -192,7 +187,6 @@ BEGIN
 END;
 GO
 
-
 -- Stored Procedure para actualizar la tabla MEDIO_DE_PAGO
 CREATE OR ALTER PROCEDURE actualizaciones.ActualizarMedioDePago
     @id INT,
@@ -207,7 +201,6 @@ BEGIN
     WHERE id = @id;
 END;
 GO
-
 
 -- Stored Procedure para actualizar la tabla VENTA
 CREATE OR ALTER PROCEDURE actualizaciones.ActualizarVenta
@@ -237,7 +230,6 @@ BEGIN
     WHERE id = @id;
 END;
 GO
-
 
 -- Stored Procedure para actualizar la tabla IMPORTADO
 CREATE OR ALTER PROCEDURE actualizaciones.ActualizarImportado
@@ -270,7 +262,6 @@ BEGIN
     WHERE id_producto = @id_producto;
 END;
 GO
-
 
 -- Stored Procedure para actualizar la tabla ELECTRONICO
 CREATE OR ALTER PROCEDURE actualizaciones.ActualizarElectronico

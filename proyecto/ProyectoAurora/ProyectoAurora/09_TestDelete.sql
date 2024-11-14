@@ -114,7 +114,6 @@ BEGIN
     DECLARE @id_categoria INT;
     DECLARE @id_producto INT;
 
-
     -- INSERTO DATO DE PRUEBA EN LA TABLA CATEGORIA
     INSERT INTO seguridad.CATEGORIA (descripcion, es_valido)
     VALUES ('Categoria de prueba', 1);

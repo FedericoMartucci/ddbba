@@ -585,3 +585,355 @@ GO
 EXEC actualizaciones.TestActualizarCliente;
 GO
 
+CREATE OR ALTER PROCEDURE actualizaciones.TestActualizarSucursal
+AS
+BEGIN
+
+    DECLARE @id_sucursal INT;
+    DECLARE @ciudad_nueva VARCHAR(50) = 'Ciudad Actualizada';
+
+    -- Insertar sucursal de prueba
+    INSERT INTO seguridad.SUCURSAL (horario, ciudad, reemplazar_por, direccion, codigo_postal, provincia)
+    VALUES ('9:00-18:00', 'Ciudad Vieja', 'Reemplazo prueba', 'Calle Falsa 123', '12345', 'Provincia de Prueba');
+    SET @id_sucursal = SCOPE_IDENTITY();
+
+	SELECT * FROM seguridad.SUCURSAL WHERE id = @id_sucursal;
+
+    -- Ejecutar el procedimiento para actualizar solo el campo provincia
+    EXEC actualizaciones.ActualizarSucursal 
+        @id = @id_sucursal, 
+        @ciudad = @ciudad_nueva;
+
+	SELECT * FROM seguridad.SUCURSAL WHERE id = @id_sucursal;
+	
+
+    -- Verificar si la actualización fue exitosa en el campo 'provincia' y los demás campos no fueron modificados
+    IF EXISTS (
+        SELECT 1 FROM seguridad.SUCURSAL 
+        WHERE id = @id_sucursal
+        AND provincia = 'Provincia de prueba'
+        AND horario = '9:00-18:00'
+        AND ciudad = @ciudad_nueva
+        AND reemplazar_por = 'Reemplazo prueba'
+        AND direccion = 'Calle Falsa 123'
+        AND codigo_postal = '12345'
+    )
+    BEGIN
+        PRINT 'TEST PASADO - Actualización de SUCURSAL exitosa';
+    END
+    ELSE
+    BEGIN
+        PRINT 'TEST FALLIDO - Error en la actualización de sucursal';
+    END
+
+    -- Eliminar la sucursal de prueba
+    DELETE FROM seguridad.SUCURSAL WHERE id = @id_sucursal;
+    
+END;
+GO
+
+-- Ejecutar el procedimiento de prueba
+EXEC actualizaciones.TestActualizarSucursal;
+GO
+
+CREATE OR ALTER PROCEDURE actualizaciones.TestActualizarVarios
+AS
+BEGIN
+
+    DECLARE @id_categoria INT;
+    DECLARE @id_producto INT;
+    DECLARE @unidad_nueva VARCHAR(50) = 'Unidad Modificada';
+
+    -- Insertar categoría de prueba
+    INSERT INTO seguridad.CATEGORIA (descripcion, es_valido)
+    VALUES ('Categoria de prueba', 1);
+    SET @id_categoria = SCOPE_IDENTITY();
+
+    -- Insertar producto de prueba asociado a la categoría
+    INSERT INTO productos.PRODUCTO (precio_unidad, nombre_producto, id_categoria, es_valido)
+    VALUES (100, 'Nombre prueba', @id_categoria, 1);
+    SET @id_producto = SCOPE_IDENTITY();
+
+    -- Insertar registro de prueba en VARIOS asociado al producto
+    INSERT INTO productos.VARIOS (id_producto, fecha, hora, unidad_de_referencia, es_valido)
+    VALUES (@id_producto, GETDATE(), CONVERT(TIME, GETDATE()), 'Unidad de prueba', 1);
+
+	-- Muestro el registro insertado antes de la actualización
+	SELECT * FROM productos.VARIOS WHERE id_producto = @id_producto;
+
+    -- Almacenar los valores iniciales para verificar que no cambien
+    DECLARE @fecha_original DATE;
+    DECLARE @hora_original TIME(0);
+    SET @fecha_original = (SELECT fecha FROM productos.VARIOS WHERE id_producto = @id_producto);
+    SET @hora_original = (SELECT hora FROM productos.VARIOS WHERE id_producto = @id_producto);
+
+
+    -- Ejecutar el procedimiento para actualizar solo el campo unidad_de_referencia
+    EXEC actualizaciones.ActualizarVarios 
+        @id_producto = @id_producto, 
+        @unidad_de_referencia = @unidad_nueva;
+
+	-- Muestro el registro actualizado
+	SELECT * FROM productos.VARIOS WHERE id_producto = @id_producto;
+    
+	-- Verificar si la actualización fue exitosa y los demás campos no fueron modificados
+    IF EXISTS (
+        SELECT 1 FROM productos.VARIOS 
+        WHERE id_producto = @id_producto
+        AND unidad_de_referencia = @unidad_nueva
+        AND fecha = @fecha_original
+        AND hora = @hora_original
+    )
+    BEGIN
+        PRINT 'TEST PASADO - Actualización de VARIOS exitosa';
+    END
+    ELSE
+    BEGIN
+        PRINT 'TEST FALLIDO - Error en la actualización de VARIOS';
+    END
+
+    -- Eliminar los datos de prueba de las tablas
+    DELETE FROM productos.VARIOS WHERE id_producto = @id_producto;
+    DELETE FROM productos.PRODUCTO WHERE id_producto = @id_producto;
+    DELETE FROM seguridad.CATEGORIA WHERE id = @id_categoria;
+    
+END;
+GO
+
+-- Ejecutar el procedimiento de prueba
+EXEC actualizaciones.TestActualizarVarios;
+GO
+
+
+CREATE OR ALTER PROCEDURE actualizaciones.TestActualizarImportado
+AS
+BEGIN
+
+    DECLARE @id_categoria INT;
+    DECLARE @id_producto INT;
+    DECLARE @nuevo_proveedor VARCHAR(255) = 'Proveedor Modificado';
+    DECLARE @nueva_cantidad_por_unidad VARCHAR(255) = '20';
+
+    -- Insertar categoría de prueba
+    INSERT INTO seguridad.CATEGORIA (descripcion, es_valido)
+    VALUES ('Categoria de prueba', 1);
+    SET @id_categoria = SCOPE_IDENTITY();
+
+    -- Insertar producto de prueba asociado a la categoría
+    INSERT INTO productos.PRODUCTO (precio_unidad, nombre_producto, id_categoria, es_valido)
+    VALUES (100, 'Nombre prueba', @id_categoria, 1);
+    SET @id_producto = SCOPE_IDENTITY();
+
+    -- Insertar registro de prueba en IMPORTADO asociado al producto
+    INSERT INTO productos.IMPORTADO (id_producto, proveedor, cantidad_por_unidad, es_valido)
+    VALUES (@id_producto, 'Proveedor Viejo', '10', 1);
+
+    -- Mostrar el registro antes de la actualización
+    SELECT * FROM productos.IMPORTADO WHERE id_producto = @id_producto;
+
+    -- Almacenar los valores iniciales para verificar que no cambien
+    DECLARE @proveedor_original VARCHAR(255);
+    DECLARE @cantidad_original VARCHAR(255);
+    SET @proveedor_original = (SELECT proveedor FROM productos.IMPORTADO WHERE id_producto = @id_producto);
+    SET @cantidad_original = (SELECT cantidad_por_unidad FROM productos.IMPORTADO WHERE id_producto = @id_producto);
+
+    -- Ejecutar el procedimiento para actualizar los campos proveedor y cantidad_por_unidad
+    EXEC actualizaciones.ActualizarImportado 
+        @id_producto = @id_producto, 
+        @proveedor = @nuevo_proveedor, 
+        @cantidad_por_unidad = @nueva_cantidad_por_unidad;
+
+    -- Mostrar el registro después de la actualización
+    SELECT * FROM productos.IMPORTADO WHERE id_producto = @id_producto;
+
+    -- Verificar si la actualización fue exitosa y los demás campos no fueron modificados
+    IF EXISTS (
+        SELECT 1 FROM productos.IMPORTADO 
+        WHERE id_producto = @id_producto
+        AND proveedor = @nuevo_proveedor
+        AND cantidad_por_unidad = @nueva_cantidad_por_unidad
+    )
+    BEGIN
+        PRINT 'TEST PASADO - Actualización de IMPORTADO exitosa';
+    END
+    ELSE
+    BEGIN
+        PRINT 'TEST FALLIDO - Error en la actualización de IMPORTADO';
+    END
+
+    -- Eliminar los datos de prueba de las tablas
+    DELETE FROM productos.IMPORTADO WHERE id_producto = @id_producto;
+    DELETE FROM productos.PRODUCTO WHERE id_producto = @id_producto;
+    DELETE FROM seguridad.CATEGORIA WHERE id = @id_categoria;
+    
+END;
+GO
+
+-- Ejecutar el procedimiento de prueba
+EXEC actualizaciones.TestActualizarImportado;
+GO
+
+CREATE OR ALTER PROCEDURE actualizaciones.TestActualizarElectronico
+AS
+BEGIN
+
+    DECLARE @id_categoria INT;
+    DECLARE @id_producto INT;
+    DECLARE @nuevo_precio_unidad_en_dolares DECIMAL(10, 2) = 30.00;
+
+    -- Insertar categoría de prueba
+    INSERT INTO seguridad.CATEGORIA (descripcion, es_valido)
+    VALUES ('Categoria de prueba', 1);
+    SET @id_categoria = SCOPE_IDENTITY();
+
+    -- Insertar producto de prueba asociado a la categoría
+    INSERT INTO productos.PRODUCTO (precio_unidad, nombre_producto, id_categoria, es_valido)
+    VALUES (100, 'Nombre prueba', @id_categoria, 1);
+    SET @id_producto = SCOPE_IDENTITY();
+
+    -- Insertar registro de prueba en ELECTRONICO asociado al producto
+    INSERT INTO productos.ELECTRONICO (id_producto, precio_unidad_en_dolares, es_valido)
+    VALUES (@id_producto, 20.00, 1);
+
+    -- Mostrar el registro antes de la actualización
+    SELECT * FROM productos.ELECTRONICO WHERE id_producto = @id_producto;
+
+    -- Ejecutar el procedimiento para actualizar el campo precio_unidad_en_dolares
+    EXEC actualizaciones.ActualizarElectronico 
+        @id_producto = @id_producto, 
+        @precio_unidad_en_dolares = @nuevo_precio_unidad_en_dolares;
+
+    -- Mostrar el registro después de la actualización
+    SELECT * FROM productos.ELECTRONICO WHERE id_producto = @id_producto;
+
+    -- Verificar si la actualización fue exitosa y los demás campos no fueron modificados
+    IF EXISTS (
+        SELECT 1 FROM productos.ELECTRONICO 
+        WHERE id_producto = @id_producto
+        AND precio_unidad_en_dolares = @nuevo_precio_unidad_en_dolares
+    )
+    BEGIN
+        PRINT 'TEST PASADO - Actualización de ELECTRONICO exitosa';
+    END
+    ELSE
+    BEGIN
+        PRINT 'TEST FALLIDO - Error en la actualización de ELECTRONICO';
+    END
+
+    -- Eliminar los datos de prueba de las tablas
+    DELETE FROM productos.ELECTRONICO WHERE id_producto = @id_producto;
+    DELETE FROM productos.PRODUCTO WHERE id_producto = @id_producto;
+    DELETE FROM seguridad.CATEGORIA WHERE id = @id_categoria;
+    
+END;
+GO
+
+-- Ejecutar el procedimiento de prueba
+EXEC actualizaciones.TestActualizarElectronico;
+GO
+
+CREATE OR ALTER PROCEDURE actualizaciones.TestActualizarVenta
+AS
+BEGIN
+
+    DECLARE @id_cliente INT;
+    DECLARE @id_cargo INT;
+    DECLARE @id_categoria INT;
+    DECLARE @id_producto INT;
+    DECLARE @id_medio_pago INT;
+    DECLARE @id_sucursal INT;
+    DECLARE @id_factura CHAR(11);
+    DECLARE @legajo INT;
+    DECLARE @id_empleado INT;
+    DECLARE @id_venta INT;
+    DECLARE @nuevo_cantidad SMALLINT = 500;
+
+    -- Insertar un cliente de prueba
+    INSERT INTO seguridad.CLIENTE (genero) VALUES ('Female');
+    SET @id_cliente = SCOPE_IDENTITY();
+
+    -- Insertar una categoría de prueba
+    INSERT INTO seguridad.CATEGORIA (descripcion) VALUES ('Categoria de prueba');
+    SET @id_categoria = SCOPE_IDENTITY();
+
+    -- Insertar un producto de prueba asociado a la categoría
+    INSERT INTO productos.PRODUCTO (precio_unidad, nombre_producto, id_categoria, es_valido)
+    VALUES (100, 'Nombre prueba', @id_categoria, 1);
+    SET @id_producto = SCOPE_IDENTITY();
+
+    -- Insertar un medio de pago de prueba
+    INSERT INTO transacciones.MEDIO_DE_PAGO (descripcion_ingles, descripcion)
+    VALUES ('Credit Card', 'Tarjeta de Crédito');
+    SET @id_medio_pago = SCOPE_IDENTITY();
+
+    -- Insertar una factura de prueba
+    INSERT INTO transacciones.FACTURA (id, tipo_de_factura, estado)
+    VALUES ('000-00-0000', 'A', 1);
+    SET @id_factura = SCOPE_IDENTITY();
+
+    -- Insertar dato de prueba
+    INSERT INTO seguridad.CARGO (nombre) VALUES ('Administrativo');
+    SET @id_cargo = SCOPE_IDENTITY();
+
+    -- Obtener el máximo legajo y sumarle 1 para el nuevo empleado
+    SELECT @legajo = ISNULL(MAX(legajo), 0) + 1 FROM seguridad.EMPLEADO;
+
+    -- Insertar un empleado de prueba
+    INSERT INTO seguridad.EMPLEADO (legajo, nombre, apellido, dni, direccion, email_empresa, email_personal, CUIL, id_cargo, id_sucursal, turno, es_valido)
+    VALUES (@legajo, 'Juan', 'Pérez', 12345678, 'Calle Falsa 123', 'juan@empresa.com', 'juan@gmail.com', '20123456789', @id_cargo, @id_sucursal, 'Mañana', 1);
+    SET @id_empleado = SCOPE_IDENTITY();
+
+    -- Insertar sucursal de prueba
+    INSERT INTO seguridad.SUCURSAL (horario, ciudad, reemplazar_por, direccion, codigo_postal, provincia)
+    VALUES ('9:00-18:00', 'Ciudad de Prueba', 'Reemplazo prueba', 'Calle Falsa 123', '12345', 'Provincia de Prueba');
+    SET @id_sucursal = SCOPE_IDENTITY();
+
+    -- Insertar una venta de prueba
+    INSERT INTO transacciones.VENTA (id_factura, id_sucursal, id_producto, cantidad, fecha, hora, id_medio_de_pago, id_empleado, identificador_de_pago)
+    VALUES (@id_factura, @id_sucursal, @id_producto,  5, '2024-11-13', '14:35:00', @id_medio_pago, @id_empleado, '1111222233334444555566');
+    SET @id_venta = SCOPE_IDENTITY();
+
+    -- Mostrar el registro de VENTA antes de la actualización
+    SELECT * FROM transacciones.VENTA WHERE id = @id_venta;
+
+    -- Ejecutar el procedimiento para actualizar el campo cantidad
+    EXEC actualizaciones.ActualizarVenta 
+        @id = @id_venta, 
+        @cantidad = @nuevo_cantidad;
+
+    -- Mostrar el registro de VENTA después de la actualización
+    SELECT * FROM transacciones.VENTA WHERE id = @id_venta;
+
+    -- Verificar si la actualización fue exitosa y los demás campos no fueron modificados
+    IF EXISTS (
+        SELECT 1 FROM transacciones.VENTA 
+        WHERE id = @id_venta
+        AND cantidad = @nuevo_cantidad
+    )
+    BEGIN
+        PRINT 'TEST PASADO - Actualización de VENTA exitosa';
+    END
+    ELSE
+    BEGIN
+        PRINT 'TEST FALLIDO - Error en la actualización de VENTA';
+    END
+
+    -- Eliminar los datos de prueba de las tablas
+    DELETE FROM transacciones.VENTA WHERE id = @id_venta;
+    DELETE FROM seguridad.EMPLEADO WHERE legajo = @legajo;
+    DELETE FROM transacciones.FACTURA WHERE id = @id_factura;
+    DELETE FROM transacciones.MEDIO_DE_PAGO WHERE id = @id_medio_pago;
+    DELETE FROM productos.PRODUCTO WHERE id_producto = @id_producto;
+    DELETE FROM seguridad.CATEGORIA WHERE id = @id_categoria;
+    DELETE FROM seguridad.CLIENTE WHERE id = @id_cliente;
+
+END;
+GO
+
+-- Ejecutar el procedimiento de prueba
+EXEC actualizaciones.TestActualizarVenta;
+GO
+
+
+
+
