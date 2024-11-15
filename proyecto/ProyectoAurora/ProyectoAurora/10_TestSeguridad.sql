@@ -34,36 +34,6 @@ BEGIN
 END;
 GO
 
-
-/*
- * ----------------------------
- * Procedimiento Modificado: DesencriptarDatosEmpleados
- * ----------------------------
- */
-CREATE OR ALTER PROCEDURE seguridad.DesencriptarDatosEmpleados
-AS
-BEGIN
-    SET NOCOUNT ON;
-    
-    -- Abre la clave simétrica utilizando el certificado
-    OPEN SYMMETRIC KEY Clave_Empleados DECRYPTION BY CERTIFICATE Certificado_Empleados;
-
-    -- Selecciona y desencripta los datos
-    SELECT 
-        dni = TRY_CAST(CAST(DECRYPTBYKEY(dni) AS VARCHAR(11)) AS INT),  
-        direccion = CAST(DECRYPTBYKEY(direccion) AS VARCHAR(255)),
-        email_empresa = CAST(DECRYPTBYKEY(email_empresa) AS VARCHAR(255)),
-        email_personal = CAST(DECRYPTBYKEY(email_personal) AS VARCHAR(255)),
-        CUIL = CAST(DECRYPTBYKEY(CUIL) AS VARCHAR(20))
-    FROM seguridad.EMPLEADO_ENCRIPTADO;
-
-    -- Cierra la clave simétrica
-    CLOSE SYMMETRIC KEY Clave_Empleados;
-
-    PRINT 'Datos de empleados desencriptados con éxito en la tabla EMPLEADO.';
-END;
-GO
-
 /*
  * ----------------------------
  * Prueba de CrearRolesYAsignarPermisos
@@ -198,16 +168,16 @@ BEGIN
 
     -- Limpia datos de prueba y revierte el contexto de usuario
     REVERT;
+	DELETE FROM transacciones.NOTA_CREDITO WHERE id_factura = @FacturaID;
 END;
 GO
-SELECT * FROM transacciones.NOTA_CREDITO
 
 /*
  * ----------------------------
  * Prueba de CrearNotaCredito como Supervisor (Debe permitirlo)
  * ----------------------------
  */
-CREATE OR ALTER PROCEDURE EXEC Test_CrearNotaCredito_Supervisor
+CREATE OR ALTER PROCEDURE Test_CrearNotaCredito_Supervisor
 AS 
 BEGIN
     SET NOCOUNT ON;
