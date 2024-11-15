@@ -85,13 +85,14 @@ BEGIN
 	WHERE NOT EXISTS (
     SELECT 1
     FROM seguridad.SUCURSAL AS aurora
-    WHERE aurora.horario = temp.horario
-      AND aurora.ciudad = temp.ciudad
+    WHERE aurora.ciudad = temp.ciudad
       AND aurora.reemplazar_por = temp.reemplazar_por
       AND aurora.direccion = LTRIM(RTRIM(REPLACE(LEFT(temp.direccion, CHARINDEX(',', temp.direccion) - 1), ' ', '')))
       AND aurora.codigo_postal = SUBSTRING(temp.direccion, CHARINDEX(', B', temp.direccion) + 2, 5)
       AND aurora.provincia = SUBSTRING(temp.direccion, CHARINDEX('Provincia', temp.direccion) + 13, LEN(temp.direccion))
 	);
+
+	SELECT * FROM seguridad.SUCURSAL
 
     INSERT INTO seguridad.TELEFONO (id_sucursal, telefono)
 	SELECT DISTINCT s.id, t.telefono
@@ -141,6 +142,24 @@ BEGIN
 
     -- Ejecutar el comando dinámico
     EXEC sp_executesql @sql;
+
+	IF NOT EXISTS ( SELECT TOP 1 1 FROM #TEMP_EMPLEADO
+	WHERE 
+	legajo IS NOT NULL OR
+	nombre IS NOT NULL OR
+	apellido IS NOT NULL OR
+	dni IS NOT NULL OR
+	direccion IS NOT NULL OR
+	email_personal IS NOT NULL OR
+	email_empresa IS NOT NULL OR
+	cargo IS NOT NULL OR
+	sucursal IS NOT NULL OR
+	turno IS NOT NULL
+	)
+    BEGIN
+        EXEC SP_SQLEXEC 'DROP TABLE #TEMP_EMPLEADO;'
+		RETURN;
+    END
 
     --Validamos no cargar datos duplicados
 	INSERT INTO seguridad.CARGO (nombre)
@@ -202,10 +221,24 @@ BEGIN
                  ''SELECT * FROM [medios de pago$]'');';
 
 	-- Ejecutar el comando dinámico
-    EXEC sp_executesql @sql;
+    BEGIN TRY
+		EXEC sp_executesql @sql;
+	END TRY
+	BEGIN CATCH
+		RAISERROR ('El archivo tiene un formato incorrecto o no tiene registros.', 16, 1 );
+	END CATCH
+
+	IF NOT EXISTS ( SELECT TOP 1 1 FROM #TEMP_MEDIO_PAGO
+	WHERE 
+	descripcion_ingles IS NOT NULL OR
+	descripcion IS NOT NULL
+	)
+    BEGIN
+        EXEC SP_SQLEXEC 'DROP TABLE #TEMP_MEDIO_PAGO;'
+		RETURN;
+    END
 
 	--Validamos que no se carguen duplicados
-
 	INSERT INTO transacciones.MEDIO_DE_PAGO (descripcion_ingles, descripcion)
 	SELECT DISTINCT
 		t.descripcion_ingles,
@@ -297,6 +330,16 @@ BEGIN
     -- Ejecutar el comando dinámico
     EXEC sp_executesql @sql;
 	
+	IF NOT EXISTS ( SELECT TOP 1 1 FROM #TEMP_ELECTRONICOS
+	WHERE 
+	nombre_producto IS NOT NULL OR
+	precio_unidad_en_dolares IS NOT NULL
+	)
+    BEGIN
+        EXEC SP_SQLEXEC 'DROP TABLE #TEMP_ELECTRONICOS;'
+		RETURN;
+    END
+
 	-- Insertar en la tabla PRODUCTO utilizando los datos de #TEMP_ELECTRONICOS
     -- Acá convertimos el precio en dólares a pesos
 	--Validamos no cargar duplicados
@@ -311,7 +354,7 @@ BEGIN
 		FROM productos.PRODUCTO p
 		WHERE p.nombre_producto = nombre_producto
 		AND p.precio_unidad = precio_unidad_en_dolares * @ret
-		AND p.id_categoria = @id_categoria
+		--AND p.id_categoria = @id_categoria
 	);
 
 	-- Insertar en la tabla ELECTRONICO utilizando los IDs recién generados en PRODUCTO
@@ -360,6 +403,16 @@ BEGIN
 	-- Ejecutar el comando dinámico
     EXEC sp_executesql @sql;
 
+	IF NOT EXISTS ( SELECT TOP 1 1 FROM #TEMP_CATEGORIAS
+	WHERE 
+	linea_producto IS NOT NULL OR
+	producto IS NOT NULL
+	)
+    BEGIN
+        EXEC SP_SQLEXEC 'DROP TABLE #TEMP_CATEGORIAS;'
+		RETURN;
+    END
+
 	-- Paso 4: Insertar en la tabla CATEGORIA si la categoría no existe
 	DECLARE @id_categoria INT;
 
@@ -392,6 +445,21 @@ BEGIN
 								''Text;HDR=YES;FMT=Delimited;Database=' + @pathCatalogos + ''', 
 								''SELECT * FROM catalogo.csv'');';
 	EXEC sp_executesql @sql;
+
+	IF NOT EXISTS ( SELECT TOP 1 1 FROM #TEMP_CATALOGO
+	WHERE 
+	id IS NOT NULL OR
+	category IS NOT NULL OR
+	name IS NOT NULL OR
+	price IS NOT NULL OR
+	reference_price IS NOT NULL OR
+	reference_unit IS NOT NULL OR
+	date IS NOT NULL
+	)
+    BEGIN
+        EXEC SP_SQLEXEC 'DROP TABLE #TEMP_CATALOGO;'
+		RETURN;
+    END
 
 	-- Paso 5: Insertar datos en la tabla PRODUCTO
 	INSERT INTO productos.PRODUCTO (nombre_producto, precio_unidad, id_categoria)
@@ -568,7 +636,6 @@ BEGIN
 			);
 		';
 
-
 		-- Ejecutar el SQL dinámico para el BULK INSERT
 		EXEC sp_executesql @sql;
 
@@ -646,16 +713,16 @@ BEGIN
 	      AND f.tipo_de_factura = #TEMP_VENTAS.tipo_de_factura
 	);
 
-	INSERT INTO transacciones.VENTA (id_factura, id_sucursal, id_producto, cantidad, fecha, hora, id_medio_de_pago, legajo, identificador_de_pago)
+	INSERT INTO transacciones.VENTA (id_factura, id_sucursal, id_producto, cantidad, fecha, hora, id_medio_de_pago, id_empleado, identificador_de_pago)
 	SELECT DISTINCT
-	    f.id,
+	    f.id_factura,
 	    s.id,
 	    p.id_producto,
 	    t.cantidad,
 	    t.fecha,
 	    t.hora,
 	    m.id,
-	    e.legajo,
+	    e.id_empleado,
 	    t.identificador_de_pago
 	FROM #TEMP_VENTAS t
 	INNER JOIN transacciones.FACTURA f ON f.id = t.id_factura
@@ -666,17 +733,15 @@ BEGIN
 	WHERE NOT EXISTS (
 	    SELECT 1
 	    FROM transacciones.VENTA v
-	    WHERE v.id_factura = f.id
-	      AND v.id_sucursal = s.id
-	      AND v.id_producto = p.id_producto
+	    WHERE v.id_sucursal IN (SELECT s2.id FROM seguridad.SUCURSAL s2 WHERE s2.ciudad = t.ciudad)
+	      AND v.id_producto IN (SELECT p2.id_producto FROM productos.PRODUCTO p2 WHERE p2.nombre_producto = t.producto)
 	      AND v.cantidad = t.cantidad
 	      AND v.fecha = t.fecha
 	      AND v.hora = t.hora
-	      AND v.id_medio_de_pago = m.id
-	      AND v.legajo = e.legajo
-	      AND v.identificador_de_pago = t.identificador_de_pago
+	      AND v.id_empleado IN (SELECT e2.id_empleado FROM seguridad.EMPLEADO e2 WHERE e2.legajo = t.empleado)
+		  AND ((v.identificador_de_pago = t.identificador_de_pago) OR 
+			  (v.identificador_de_pago IS NULL AND t.identificador_de_pago IS NULL))
 	);
 	DROP TABLE #TEMP_VENTAS
 END;
 GO
-
