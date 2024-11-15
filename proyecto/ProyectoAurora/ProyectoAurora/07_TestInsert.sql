@@ -44,15 +44,15 @@ BEGIN
 	SET @cantidadDeFilasDespuesEnTelefono = (SELECT COUNT(1) FROM seguridad.TELEFONO)
 
 	IF(@cantidadDeFilasAntesEnSucursal <> @cantidadDeFilasDespuesEnSucursal OR @cantidadDeFilasAntesEnTelefono <> @cantidadDeFilasDespuesEnTelefono)
-		RAISERROR ('Error raised in TRY block.', 16, 1 );
+		RAISERROR ('Error en SP InsertarSucursales. Se cargaron registros duplicados.', 16, 1 );
 	ELSE
 		PRINT @todoOK + 'volver a cargar mismo archivo.'
 
 	--CASO 2: volver a cargar mismo archivo con tuplas extra distintas.
 	SELECT * FROM seguridad.SUCURSAL
 	SELECT * FROM seguridad.TELEFONO
-	SET @cantidadDeFilasAntesEnSucursal = (SELECT COUNT(1) FROM seguridad.SUCURSAL)
-	SET @cantidadDeFilasAntesEnTelefono = (SELECT COUNT(1) FROM seguridad.TELEFONO)
+	SET @cantidadDeFilasAntesEnSucursal = (SELECT COUNT(1) FROM seguridad.SUCURSAL) + 2
+	SET @cantidadDeFilasAntesEnTelefono = (SELECT COUNT(1) FROM seguridad.TELEFONO) + 2
 
 	EXEC inserciones.InsertarSucursales @pathCaso2;
 
@@ -60,11 +60,15 @@ BEGIN
 	SELECT * FROM seguridad.TELEFONO
 	SET @cantidadDeFilasDespuesEnSucursal = (SELECT COUNT(1) FROM seguridad.SUCURSAL)
 	SET @cantidadDeFilasDespuesEnTelefono = (SELECT COUNT(1) FROM seguridad.TELEFONO)
-
+	
 	IF(@cantidadDeFilasAntesEnSucursal <> @cantidadDeFilasDespuesEnSucursal OR @cantidadDeFilasAntesEnTelefono <> @cantidadDeFilasDespuesEnTelefono)
-		RAISERROR ('Error raised in TRY block.', 16, 1 );
+		RAISERROR ('Error en SP InsertarSucursales. Se cargaron registros duplicados.', 16, 1 );
 	ELSE
 		PRINT @todoOK + 'volver a cargar mismo archivo con tuplas extra distintas.'
+
+	DELETE FROM seguridad.SUCURSAL
+	WHERE ciudad IN ('Madrid', 'Washington D. C.')
+	AND reemplazar_por IN ('Laferrere','Gonzalez Catan')
 
 	--CASO 3: cargar archivo vacio.
 	SELECT * FROM seguridad.SUCURSAL
@@ -80,7 +84,7 @@ BEGIN
 	SET @cantidadDeFilasDespuesEnTelefono = (SELECT COUNT(1) FROM seguridad.TELEFONO)
 
 	IF(@cantidadDeFilasAntesEnSucursal <> @cantidadDeFilasDespuesEnSucursal OR @cantidadDeFilasAntesEnTelefono <> @cantidadDeFilasDespuesEnTelefono)
-		RAISERROR ('Error raised in TRY block.', 16, 1 );
+		RAISERROR ('Error en SP InsertarSucursales. Se insertaron tuplas vacias.', 16, 1 );
 	ELSE
 		PRINT @todoOK + 'cargar archivo vacio.'
 
@@ -116,7 +120,7 @@ BEGIN
 	SET @cantidadDeFilasDespuesEnEmpleado = (SELECT COUNT(1) FROM seguridad.EMPLEADO)
 
 	IF(@cantidadDeFilasAntesEnCargo <> @cantidadDeFilasDespuesEnCargo OR @cantidadDeFilasAntesEnEmpleado <> @cantidadDeFilasDespuesEnEmpleado)
-		RAISERROR ('Error raised in TRY block.', 16, 1 );
+		RAISERROR ('Error en SP InsertarEmpleados. Se cargaron registros duplicados.', 16, 1 );
 	ELSE
 		PRINT @todoOK + 'volver a cargar mismo archivo.'
 
@@ -124,7 +128,7 @@ BEGIN
 	SELECT * FROM seguridad.CARGO
 	SELECT * FROM seguridad.EMPLEADO
 	SET @cantidadDeFilasAntesEnCargo = (SELECT COUNT(1) FROM seguridad.CARGO)
-	SET @cantidadDeFilasAntesEnEmpleado = (SELECT COUNT(1) FROM seguridad.EMPLEADO)
+	SET @cantidadDeFilasAntesEnEmpleado = (SELECT COUNT(1) FROM seguridad.EMPLEADO) + 2
 
 	EXEC inserciones.InsertarEmpleados @pathCaso2;
 
@@ -134,10 +138,14 @@ BEGIN
 	SET @cantidadDeFilasDespuesEnEmpleado = (SELECT COUNT(1) FROM seguridad.EMPLEADO)
 
 	IF(@cantidadDeFilasAntesEnCargo <> @cantidadDeFilasDespuesEnCargo OR @cantidadDeFilasAntesEnEmpleado <> @cantidadDeFilasDespuesEnEmpleado)
-		RAISERROR ('Error raised in TRY block.', 16, 1 );
+		RAISERROR ('Error en SP InsertarEmpleados. Se cargaron registros duplicados.', 16, 1 );
 	ELSE
 		PRINT @todoOK + 'volver a cargar mismo archivo con tuplas extra distintas.'
 	
+	DELETE FROM seguridad.EMPLEADO
+	WHERE email_empresa IN ('AGUSTIN_BROCANI@cs.com', 'viktor2008_tuturrito@cs.com')
+	AND email_personal IN ('AGUSTIN_BROCANI@gmail.com','viktor2008_tuturrito@gmail.com')
+		
 	--CASO 3: cargar archivo vacio.
 	SELECT * FROM seguridad.CARGO
 	SELECT * FROM seguridad.EMPLEADO
@@ -152,7 +160,7 @@ BEGIN
 	SET @cantidadDeFilasDespuesEnEmpleado = (SELECT COUNT(1) FROM seguridad.EMPLEADO)
 
 	IF(@cantidadDeFilasAntesEnCargo <> @cantidadDeFilasDespuesEnCargo OR @cantidadDeFilasAntesEnEmpleado <> @cantidadDeFilasDespuesEnEmpleado)
-		RAISERROR ('Error raised in TRY block.', 16, 1 );
+		RAISERROR ('Error en SP InsertarEmpleados. Se insertaron tuplas vacias.', 16, 1 );
 	ELSE
 		PRINT @todoOK + 'cargar archivo vacio.'
 
@@ -182,7 +190,7 @@ BEGIN
 	SET @cantidadDeFilasDespuesEnMediosDePago = (SELECT COUNT(1) FROM transacciones.MEDIO_DE_PAGO)
 	
 	IF(@cantidadDeFilasAntesEnMediosDePago <> @cantidadDeFilasDespuesEnMediosDePago)
-		RAISERROR ('Error raised in TRY block.', 16, 1 );
+		RAISERROR ('Error en SP InsertarMediosDePago. Se cargaron registros duplicados.', 16, 1 );
 	ELSE
 		PRINT @todoOK + 'volver a cargar mismo archivo.'
 	
@@ -196,9 +204,9 @@ BEGIN
 	SET @cantidadDeFilasDespuesEnMediosDePago = (SELECT COUNT(1) FROM transacciones.MEDIO_DE_PAGO)
 	
 	IF(@cantidadDeFilasAntesEnMediosDePago <> @cantidadDeFilasDespuesEnMediosDePago)
-		RAISERROR ('Error raised in TRY block.', 16, 1 );
+		RAISERROR ('Error en SP InsertarMediosDePago. Se cargaron registros duplicados.', 16, 1 );
 	ELSE
-		PRINT @todoOK + 'volver a cargar mismo archivo con tuplas extra distintas.'
+		PRINT @todoOK + 'volver a cargar mismo archivo con tuplas extra distintas. Error a mostrarse:'
 	
 	--CASO 3: cargar archivo vacio.
 	SELECT * FROM transacciones.MEDIO_DE_PAGO
@@ -210,7 +218,7 @@ BEGIN
 	SET @cantidadDeFilasDespuesEnMediosDePago = (SELECT COUNT(1) FROM transacciones.MEDIO_DE_PAGO)
 	
 	IF(@cantidadDeFilasAntesEnMediosDePago <> @cantidadDeFilasDespuesEnMediosDePago)
-		RAISERROR ('Error raised in TRY block.', 16, 1 );
+		RAISERROR ('Error en SP InsertarMediosDePago. Se insertaron tuplas vacias.', 16, 1 );
 	ELSE
 		PRINT @todoOK + 'cargar archivo vacio.'
 
@@ -246,7 +254,7 @@ BEGIN
 	SET @cantidadDeFilasDespuesEnElectronico = (SELECT COUNT(1) FROM productos.ELECTRONICO)
 
 	IF(@cantidadDeFilasAntesEnProducto <> @cantidadDeFilasDespuesEnProducto OR @cantidadDeFilasAntesEnElectronico <> @cantidadDeFilasDespuesEnElectronico)
-		RAISERROR ('Error raised in TRY block.', 16, 1 );
+		RAISERROR ('Error en SP InsertarProductosElectronicos. Se cargaron registros duplicados.', 16, 1 );
 	ELSE
 		PRINT @todoOK + 'volver a cargar mismo archivo.'
 	
@@ -264,7 +272,7 @@ BEGIN
 	SET @cantidadDeFilasDespuesEnElectronico = (SELECT COUNT(1) FROM productos.ELECTRONICO)
 
 	IF(@cantidadDeFilasAntesEnProducto <> @cantidadDeFilasDespuesEnProducto OR @cantidadDeFilasAntesEnElectronico <> @cantidadDeFilasDespuesEnElectronico)
-		RAISERROR ('Error raised in TRY block.', 16, 1 );
+		RAISERROR ('Error en SP InsertarProductosElectronicos. Se cargaron registros duplicados.', 16, 1 );
 	ELSE
 		PRINT @todoOK + 'volver a cargar mismo archivo con tuplas extra distintas.'	
 	
@@ -282,7 +290,7 @@ BEGIN
 	SET @cantidadDeFilasDespuesEnElectronico = (SELECT COUNT(1) FROM productos.ELECTRONICO)
 
 	IF(@cantidadDeFilasAntesEnProducto <> @cantidadDeFilasDespuesEnProducto OR @cantidadDeFilasAntesEnElectronico <> @cantidadDeFilasDespuesEnElectronico)
-		RAISERROR ('Error raised in TRY block.', 16, 1 );
+		RAISERROR ('Error en SP InsertarProductosElectronicos. Se insertaron tuplas vacias.', 16, 1 );
 	ELSE
 		PRINT @todoOK + 'cargar archivo vacio.'
 
@@ -306,7 +314,7 @@ BEGIN
 	DECLARE @cantidadDeFilasDespuesEnVarios INT;
 	DECLARE @todoOK VARCHAR(100) = 'SP TestIngresarCategorias funciona correctamente para el caso ';
 
-	PRINT 'TestInsertarProductosElectronicos:' + CHAR(10)
+	PRINT 'TestIngresarCategorias:' + CHAR(10)
 	
 	--CASO 1: volver a cargar mismo archivo
 	SELECT * FROM seguridad.CATEGORIA
@@ -331,7 +339,7 @@ BEGIN
 		@cantidadDeFilasAntesEnProducto <> @cantidadDeFilasDespuesEnProducto OR
 		@cantidadDeFilasAntesEnVarios <> @cantidadDeFilasDespuesEnVarios
 	)
-		RAISERROR ('Error raised in TRY block.', 16, 1 );
+		RAISERROR ('Error en SP IngresarCategorias. Se cargaron registros duplicados.', 16, 1 );
 	ELSE
 		PRINT @todoOK + 'volver a cargar mismo archivo.'
 
@@ -357,7 +365,7 @@ BEGIN
 		@cantidadDeFilasAntesEnProducto <> @cantidadDeFilasDespuesEnProducto OR
 		@cantidadDeFilasAntesEnVarios <> @cantidadDeFilasDespuesEnVarios
 	)
-		RAISERROR ('Error raised in TRY block.', 16, 1 );
+		RAISERROR ('Error en SP IngresarCategorias. Se cargaron registros duplicados.', 16, 1 );
 	ELSE
 		PRINT @todoOK + 'volver a cargar mismo archivo con tuplas extra distintas.'	
 
@@ -383,7 +391,7 @@ BEGIN
 		@cantidadDeFilasAntesEnProducto <> @cantidadDeFilasDespuesEnProducto OR
 		@cantidadDeFilasAntesEnVarios <> @cantidadDeFilasDespuesEnVarios
 	)
-		RAISERROR ('Error raised in TRY block.', 16, 1 );
+		RAISERROR ('Error en SP IngresarCategorias. Se insertaron tuplas vacias.', 16, 1 );
 	ELSE
 		PRINT @todoOK + 'cargar archivo vacio.'
 
@@ -431,7 +439,7 @@ BEGIN
 		@cantidadDeFilasAntesEnProducto <> @cantidadDeFilasDespuesEnProducto OR
 		@cantidadDeFilasAntesEnImportado <> @cantidadDeFilasDespuesEnImportado
 	)
-		RAISERROR ('Error raised in TRY block.', 16, 1 );
+		RAISERROR ('Error en SP InsertarProductosImportados. Se cargaron registros duplicados.', 16, 1 );
 	ELSE
 		PRINT @todoOK + 'volver a cargar mismo archivo.'
 
@@ -458,7 +466,7 @@ BEGIN
 		@cantidadDeFilasAntesEnProducto <> @cantidadDeFilasDespuesEnProducto OR
 		@cantidadDeFilasAntesEnImportado <> @cantidadDeFilasDespuesEnImportado
 	)
-		RAISERROR ('Error raised in TRY block.', 16, 1 );
+		RAISERROR ('Error en SP InsertarProductosImportados. Se cargaron registros duplicados.', 16, 1 );
 	ELSE
 		PRINT @todoOK + 'volver a cargar mismo archivo con tuplas extra distintas.'	
 
@@ -484,7 +492,7 @@ BEGIN
 		@cantidadDeFilasAntesEnProducto <> @cantidadDeFilasDespuesEnProducto OR
 		@cantidadDeFilasAntesEnImportado <> @cantidadDeFilasDespuesEnImportado
 	)
-		RAISERROR ('Error raised in TRY block.', 16, 1 );
+		RAISERROR ('Error en SP InsertarProductosImportados. Se insertaron tuplas vacias.', 16, 1 );
 	ELSE
 		PRINT @todoOK + 'cargar archivo vacio.'
 
@@ -534,14 +542,15 @@ BEGIN
 	SET @cantidadDeFilasDespuesEnFactura = (SELECT COUNT(1) FROM transacciones.FACTURA)
 	SET @cantidadDeFilasDespuesEnVenta = (SELECT COUNT(1) FROM transacciones.VENTA)
 
-
 	IF(
 		@cantidadDeFilasAntesEnTipo <> @cantidadDeFilasDespuesEnTipo OR
 		@cantidadDeFilasAntesEnCliente <> @cantidadDeFilasDespuesEnCliente OR
 		@cantidadDeFilasAntesEnFactura <> @cantidadDeFilasDespuesEnFactura OR
 		@cantidadDeFilasAntesEnVenta <> @cantidadDeFilasDespuesEnVenta
 	)
-		RAISERROR ('Error raised in TRY block.', 16, 1 );
+	BEGIN
+		RAISERROR ('Error en SP InsertarVentasRegistradas. Se cargaron registros duplicados.', 16, 1 );
+	END
 	ELSE
 		PRINT @todoOK + 'volver a cargar mismo archivo.'
 
@@ -572,7 +581,7 @@ BEGIN
 		@cantidadDeFilasAntesEnFactura <> @cantidadDeFilasDespuesEnFactura OR
 		@cantidadDeFilasAntesEnVenta <> @cantidadDeFilasDespuesEnVenta
 	)
-		RAISERROR ('Error raised in TRY block.', 16, 1 );
+		RAISERROR ('Error en SP InsertarVentasRegistradas. Se cargaron registros duplicados.', 16, 1 );
 	ELSE
 		PRINT @todoOK + 'volver a cargar mismo archivo con tuplas extra distintas.'	
 
@@ -603,7 +612,7 @@ BEGIN
 		@cantidadDeFilasAntesEnFactura <> @cantidadDeFilasDespuesEnFactura OR
 		@cantidadDeFilasAntesEnVenta <> @cantidadDeFilasDespuesEnVenta
 	)
-		RAISERROR ('Error raised in TRY block.', 16, 1 );
+		RAISERROR ('Error en SP InsertarVentasRegistradas. Se insertaron tuplas vacias.', 16, 1 );
 	ELSE
 		PRINT @todoOK + 'cargar archivo vacio.'
 
@@ -612,20 +621,20 @@ END
 
 GO
 
-DECLARE @pathInformacionComplementaria VARCHAR(255) = 'C:\Users\PC\Desktop\ddbba\Informacion_complementaria.xlsx';
-DECLARE @pathCaso2 VARCHAR(255) = 'C:\Users\PC\Desktop\ddbba\test-caso2-insert.xlsx';
-DECLARE @pathCaso3 VARCHAR(255) = 'C:\Users\PC\Desktop\ddbba\test-caso3-insert.xlsx';
+DECLARE @pathInformacionComplementaria VARCHAR(255) = 'C:\Users\User\Desktop\ddbba\Informacion_complementaria.xlsx';
+DECLARE @pathCaso2 VARCHAR(255) = 'C:\Users\User\Desktop\ddbba\test-caso2-insert.xlsx';
+DECLARE @pathCaso3 VARCHAR(255) = 'C:\Users\User\Desktop\ddbba\test-caso3-insert.xlsx';
 
-DECLARE @pathProductosImportados VARCHAR(255) = 'C:\Users\PC\Desktop\ddbba\Productos_importados.xlsx'
-DECLARE @pathCaso2PI VARCHAR(255) = 'C:\Users\PC\Desktop\ddbba\test-caso2-insertProductosImportados.xlsx';
-DECLARE @pathCaso3PI VARCHAR(255) = 'C:\Users\PC\Desktop\ddbba\test-caso3-insertProductosImportados.xlsx';
+DECLARE @pathProductosImportados VARCHAR(255) = 'C:\Users\User\Desktop\ddbba\Productos_importados.xlsx'
+DECLARE @pathCaso2PI VARCHAR(255) = 'C:\Users\User\Desktop\ddbba\test-caso2-insertProductosImportados.xlsx';
+DECLARE @pathCaso3PI VARCHAR(255) = 'C:\Users\User\Desktop\ddbba\test-caso3-insertProductosImportados.xlsx';
 
-DECLARE @pathVentasRegistradas VARCHAR(255) = 'C:\Users\PC\Desktop\ddbba\Ventas_registradas.csv'
-DECLARE @pathCaso2VR VARCHAR(255) = 'C:\Users\PC\Desktop\ddbba\test-caso2-insertVentasRegistradas.csv';
-DECLARE @pathCaso3VR VARCHAR(255) = 'C:\Users\PC\Desktop\ddbba\test-caso3-insertVentasRegistradas.csv';
+DECLARE @pathVentasRegistradas VARCHAR(255) = 'C:\Users\User\Desktop\ddbba\Ventas_registradas.csv'
+DECLARE @pathCaso2VR VARCHAR(255) = 'C:\Users\User\Desktop\ddbba\test-caso2-insertVentasRegistradas.csv';
+DECLARE @pathCaso3VR VARCHAR(255) = 'C:\Users\User\Desktop\ddbba\test-caso3-insertVentasRegistradas.csv';
 
-DECLARE @pathProductosElectronicos VARCHAR(255) = 'C:\Users\PC\Desktop\ddbba\Electronic accessories.xlsx';
-DECLARE @pathCatalogo VARCHAR(255) = 'C:\Users\PC\Desktop\ddbba';
+DECLARE @pathProductosElectronicos VARCHAR(255) = 'C:\Users\User\Desktop\ddbba\Electronic accessories.xlsx';
+DECLARE @pathCatalogo VARCHAR(255) = 'C:\Users\User\Desktop\ddbba';
 
 EXEC inserciones.TestInsertarSucursales
 @pathInformacionComplementaria,

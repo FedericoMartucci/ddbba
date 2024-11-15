@@ -23,7 +23,7 @@ GO
 CREATE OR ALTER PROCEDURE actualizaciones.TestActualizarCargo 
 AS
 BEGIN
-    -- Preparaci髇 del entorno de prueba
+    -- Preparaci锟絥 del entorno de prueba
     SET NOCOUNT ON;
     DECLARE @id INT;
     DECLARE @nombre_original NVARCHAR(50), @nombre_actualizado NVARCHAR(50);
@@ -38,17 +38,17 @@ BEGIN
     -- Mostrar el registro insertado
     SELECT * FROM seguridad.CARGO WHERE id = @id;
 
-    -- Ejecutar el procedimiento de actualizaci髇
+    -- Ejecutar el procedimiento de actualizaci贸n
     EXEC actualizaciones.ActualizarCargo @id = @id, @nombre = 'Gerente';
 
     -- Almacenar el valor actualizado
     SELECT @nombre_actualizado = nombre FROM seguridad.CARGO WHERE id = @id;
 
-    -- Verificar el resultado de la actualizaci髇
+    -- Verificar el resultado de la actualizaci贸n
     IF  @nombre_actualizado = 'Gerente'
-        PRINT 'TEST PASADO - Actualizaci髇 de CARGO exitosa';
+        PRINT 'TEST PASADO - Actualizaci贸n de CARGO exitosa';
     ELSE
-        PRINT 'TEST FALLIDO - Error en la actualizaci髇 de CARGO';
+        PRINT 'TEST FALLIDO - Error en la actualizaci贸n de CARGO';
 
     -- Mostrar el registro actualizado
     SELECT * FROM seguridad.CARGO WHERE id = @id;
@@ -87,13 +87,13 @@ BEGIN
     VALUES ('9:00-18:00', 'Ciudad de Prueba', 'Reemplazo prueba', 'Calle Falsa 123', '12345', 'Provincia de Prueba');
     SET @id_sucursal = SCOPE_IDENTITY();
 
-    -- Obtener el valor m醲imo de legajo y sumarle 1
+    -- Obtener el valor m锟絰imo de legajo y sumarle 1
     SELECT @legajo = ISNULL(MAX(legajo), 0) + 1 FROM seguridad.EMPLEADO;
 
     INSERT INTO seguridad.EMPLEADO 
         (legajo, nombre, apellido, dni, direccion, email_empresa, email_personal, CUIL, id_cargo, id_sucursal, turno, es_valido)
     VALUES 
-        (@legajo, 'Juan', 'P閞ez', 12345678, 'Calle Falsa 123', 'jperez@empresa.com', 'jperez@gmail.com', '20123456789', @id_cargo, @id_sucursal, 'Ma馻na', 1);
+        (@legajo, 'Juan', 'P锟絩ez', 12345678, 'Calle Falsa 123', 'jperez@empresa.com', 'jperez@gmail.com', '20123456789', @id_cargo, @id_sucursal, 'Ma锟絘na', 1);
 	
 	SET @id_empleado = SCOPE_IDENTITY();
 
@@ -106,7 +106,7 @@ BEGIN
     FROM seguridad.EMPLEADO 
     WHERE legajo = @legajo;
 
-    -- Ejecutar el procedimiento de actualizaci髇 solo para el campo apellido
+    -- Ejecutar el procedimiento de actualizaci贸n solo para el campo apellido
     EXEC actualizaciones.ActualizarEmpleado 
         @id_empleado = @id_empleado, @apellido = 'Gomez';
 
@@ -123,11 +123,11 @@ BEGIN
        (@turno_original = (SELECT turno FROM seguridad.EMPLEADO WHERE legajo = @legajo)) AND
        (@es_valido_original = (SELECT es_valido FROM seguridad.EMPLEADO WHERE legajo = @legajo))
     BEGIN
-        PRINT 'TEST PASADO - Actualizaci髇 de EMPLEADO exitosa';
+        PRINT 'TEST PASADO - Actualizaci贸n de EMPLEADO exitosa';
     END
     ELSE
     BEGIN
-        PRINT 'TEST FALLIDO - Error en la actualizaci髇 de empleado';
+        PRINT 'TEST FALLIDO - Error en la actualizaci贸n de empleado';
     END;
 
     -- Eliminar el registro de prueba
@@ -172,16 +172,16 @@ BEGIN
     FROM productos.PRODUCTO 
     WHERE id_producto = @id_producto;
 
-    -- Ejecutar el procedimiento de actualizaci髇
+    -- Ejecutar el procedimiento de actualizaci贸n
     EXEC actualizaciones.ActualizarProducto 
         @id_producto = @id_producto, 
         @precio_unidad = @precio_nuevo;
 
     -- Verificar el resultado
     IF (@precio_unidad_original != (SELECT precio_unidad FROM productos.PRODUCTO WHERE id_producto = @id_producto))
-        PRINT 'TEST PASADO - Actualizaci髇 de PRODUCTO exitosa';
+        PRINT 'TEST PASADO - Actualizaci贸n de PRODUCTO exitosa';
     ELSE
-        PRINT 'TEST FALLIDO - Error en la actualizaci髇';
+        PRINT 'TEST FALLIDO - Error en la actualizaci贸n';
 
     -- Eliminar el registro de prueba
     DELETE FROM productos.PRODUCTO WHERE id_producto = @id_producto;
@@ -201,12 +201,12 @@ BEGIN
     DECLARE @id INT,
             @descripcion_original VARCHAR(50),
             @descripcion_ingles_original VARCHAR(50),
-            @descripcion_nueva VARCHAR(50) = 'Descripci髇 Nueva',
+            @descripcion_nueva VARCHAR(50) = 'Descripci锟絥 Nueva',
             @descripcion_ingles_nueva VARCHAR(50) = 'New Description';
 
     -- Insertar dato de prueba en la tabla MEDIO_DE_PAGO
     INSERT INTO transacciones.MEDIO_DE_PAGO (descripcion, descripcion_ingles)
-    VALUES ('Descripci髇 Original', 'Original Description');
+    VALUES ('Descripci锟絥 Original', 'Original Description');
     SELECT @id = SCOPE_IDENTITY();
 
     -- Almacenar los valores originales
@@ -215,21 +215,21 @@ BEGIN
     FROM transacciones.MEDIO_DE_PAGO 
     WHERE id = @id;
 
-    -- Ejecutar el procedimiento de actualizaci髇
+    -- Ejecutar el procedimiento de actualizaci贸n
     EXEC actualizaciones.ActualizarMedioDePago 
         @id = @id, 
         @descripcion = @descripcion_nueva, 
         @descripcion_ingles = @descripcion_ingles_nueva;
 
-    -- Verificar la actualizaci髇
+    -- Verificar la actualizaci贸n
     IF (@descripcion_nueva = (SELECT descripcion FROM transacciones.MEDIO_DE_PAGO WHERE id = @id)) 
        AND (@descripcion_ingles_nueva = (SELECT descripcion_ingles FROM transacciones.MEDIO_DE_PAGO WHERE id = @id))
     BEGIN
-        PRINT 'TEST PASADO - Actualizaci髇 de MEDIO DE PAGO exitosa';
+        PRINT 'TEST PASADO - Actualizaci贸n de MEDIO DE PAGO exitosa';
     END
     ELSE
     BEGIN
-        PRINT 'TEST FALLIDO - Error en la actualizaci髇 de MEDIO DE PAGO';
+        PRINT 'TEST FALLIDO - Error en la actualizaci贸n de MEDIO DE PAGO';
     END;
 
     -- Eliminar el registro de prueba
@@ -248,13 +248,13 @@ BEGIN
 
     DECLARE @id INT,
             @descripcion_original VARCHAR(50),
-            @descripcion_nueva VARCHAR(50) = 'Nueva Descripci髇';
+            @descripcion_nueva VARCHAR(50) = 'Nueva Descripci锟絥';
 
     -- Inserto dato de prueba en la tabla CATEGORIA
     INSERT INTO seguridad.CATEGORIA (descripcion, es_valido)
-    VALUES ('Descripci髇 Original', 1);
+    VALUES ('Descripci锟絥 Original', 1);
 
-    -- Obtener el ID de la categor韆 insertada
+    -- Obtener el ID de la categor锟絘 insertada
     SELECT @id = SCOPE_IDENTITY();
 
     -- Almacenar los valores originales
@@ -262,23 +262,23 @@ BEGIN
     FROM seguridad.CATEGORIA
     WHERE id = @id;
 
-    -- Mostrar la categor韆 original
+    -- Mostrar la categor锟絘 original
     SELECT * FROM seguridad.CATEGORIA WHERE id = @id;
 
-    -- Ejecutar el procedimiento de actualizaci髇 (modificar solo la descripci髇)
+    -- Ejecutar el procedimiento de actualizaci贸n (modificar solo la descripci锟絥)
     EXEC actualizaciones.ActualizarCategoria 
         @id = @id, 
         @descripcion = @descripcion_nueva,  -- Actualizamos solo 'descripcion'
         @es_valido = NULL;                  -- No modificamos 'es_valido'
 
-    -- Verificar si la descripci髇 se ha actualizado
+    -- Verificar si la descripci锟絥 se ha actualizado
     IF (@descripcion_original != (SELECT descripcion FROM seguridad.CATEGORIA WHERE id = @id))
     BEGIN
-        PRINT 'TEST PASADO - Actualicaci髇 de CATEGOR虯 exitosa.';
+        PRINT 'TEST PASADO - Actualicaci锟絥 de CATEGOR锟紸 exitosa.';
     END
     ELSE
     BEGIN
-        PRINT 'TEST FALLIDO - Error en la actualizaci髇 de la descripci髇.';
+        PRINT 'TEST FALLIDO - Error en la actualizaci贸n de la descripci锟絥.';
     END;
 
     -- Mostrar el registro actualizado
@@ -310,7 +310,7 @@ BEGIN
     INSERT INTO seguridad.TELEFONO (id_sucursal, telefono)
     VALUES (@id_sucursal, '0000-0000');
 
-    -- Almacenar el valor original del tel閒ono
+    -- Almacenar el valor original del tel锟絝ono
     SELECT @telefono_original = telefono 
     FROM seguridad.TELEFONO 
     WHERE id_sucursal = @id_sucursal;
@@ -319,7 +319,7 @@ BEGIN
     FROM seguridad.TELEFONO 
     WHERE id_sucursal = @id_sucursal AND telefono = @telefono_original;
 
-    -- Ejecutar el procedimiento de actualizaci髇
+    -- Ejecutar el procedimiento de actualizaci贸n
     EXEC actualizaciones.ActualizarTelefono 
         @id_sucursal = @id_sucursal, 
         @telefono = @telefono_nuevo;
@@ -328,7 +328,7 @@ BEGIN
     FROM seguridad.TELEFONO 
     WHERE id_sucursal = @id_sucursal;
 
-    -- Verificar si el tel閒ono ha sido actualizado
+    -- Verificar si el tel锟絝ono ha sido actualizado
     DECLARE @telefono_actualizado CHAR(9);
 
     SELECT @telefono_actualizado = telefono
@@ -337,11 +337,11 @@ BEGIN
 
     IF (@telefono_actualizado = @telefono_nuevo)
     BEGIN
-        PRINT 'TEST PASADO - Actualizaci髇 de TELEFONO exitosa';
+        PRINT 'TEST PASADO - Actualizaci贸n de TELEFONO exitosa';
     END
     ELSE
     BEGIN
-        PRINT 'TEST FALLIDO - Error en la actualizaci髇 de TELEFONO';
+        PRINT 'TEST FALLIDO - Error en la actualizaci贸n de TELEFONO';
     END;
 
     -- Eliminar los registros de prueba
@@ -374,7 +374,7 @@ BEGIN
 	END TRY
 
 	BEGIN CATCH
-		PRINT 'Error en la inserci髇 de factura';
+		PRINT 'Error en la inserci锟絥 de factura';
 	END CATCH
 
 
@@ -389,7 +389,7 @@ BEGIN
 		
 		SELECT * from transacciones.FACTURA WHERE @id_factura = @id_factura;
 
-        -- Verificar que la actualizaci髇 se haya realizado correctamente
+        -- Verificar que la actualizaci贸n se haya realizado correctamente
         SELECT @resultadoEstado = estado, @id_insertado = id
         FROM transacciones.FACTURA
         WHERE @id_factura = @id_factura;
@@ -408,7 +408,7 @@ BEGIN
     END TRY
 
     BEGIN CATCH
-        -- En caso de error, revertir la transacci髇 y mostrar un mensaje de error
+        -- En caso de error, revertir la transacci锟絥 y mostrar un mensaje de error
         PRINT 'Error durante la prueba: ' + ERROR_MESSAGE();
     END CATCH
 
@@ -458,13 +458,13 @@ BEGIN
 
 		IF (@monto_actualizado = @monto_nuevo AND @id_factura_actualizado = @id_factura)			PRINT 'TEST PASADO - Actualizacion de NOTA DE CREDITO exitosa'
 		ELSE 
-			PRINT 'TEST FALLIDO - Error en la actualizaci髇 de nota de cr閐ito';
+			PRINT 'TEST FALLIDO - Error en la actualizaci贸n de nota de cr锟絛ito';
 		
 
 	END TRY
 
 	BEGIN CATCH
-		PRINT 'ERROR EN EL TEST - Error inesperado en la insercion de los datos o ejecuci髇 del procedure';
+		PRINT 'ERROR EN EL TEST - Error inesperado en la insercion de los datos o ejecuci锟絥 del procedure';
 	END CATCH
 
 	DELETE FROM transacciones.NOTA_CREDITO WHERE id = @id_nota_credito;
@@ -551,10 +551,10 @@ BEGIN
 
 		SELECT * FROM seguridad.CLIENTE WHERE id = @id_cliente;
 
-        -- Ejecutar el procedimiento de actualizaci髇 para cambiar el g閚ero a 'male'
+        -- Ejecutar el procedimiento de actualizaci贸n para cambiar el g锟絥ero a 'male'
         EXEC actualizaciones.ActualizarCliente @id = @id_cliente, @genero = @nuevo_genero;
 
-        -- Verificar que el g閚ero se haya actualizado correctamente y que id_tipo se mantenga igual
+        -- Verificar que el g锟絥ero se haya actualizado correctamente y que id_tipo se mantenga igual
         SELECT @genero_actual = genero, @id_tipo_actual = id_tipo 
         FROM seguridad.CLIENTE 
         WHERE id = @id_cliente;
@@ -607,7 +607,7 @@ BEGIN
 	SELECT * FROM seguridad.SUCURSAL WHERE id = @id_sucursal;
 	
 
-    -- Verificar si la actualizaci髇 fue exitosa en el campo 'provincia' y los dem醩 campos no fueron modificados
+    -- Verificar si la actualizaci贸n fue exitosa en el campo 'provincia' y los dem锟絪 campos no fueron modificados
     IF EXISTS (
         SELECT 1 FROM seguridad.SUCURSAL 
         WHERE id = @id_sucursal
@@ -619,11 +619,11 @@ BEGIN
         AND codigo_postal = '12345'
     )
     BEGIN
-        PRINT 'TEST PASADO - Actualizaci髇 de SUCURSAL exitosa';
+        PRINT 'TEST PASADO - Actualizaci贸n de SUCURSAL exitosa';
     END
     ELSE
     BEGIN
-        PRINT 'TEST FALLIDO - Error en la actualizaci髇 de sucursal';
+        PRINT 'TEST FALLIDO - Error en la actualizaci贸n de sucursal';
     END
 
     -- Eliminar la sucursal de prueba
@@ -644,12 +644,12 @@ BEGIN
     DECLARE @id_producto INT;
     DECLARE @unidad_nueva VARCHAR(50) = 'Unidad Modificada';
 
-    -- Insertar categor韆 de prueba
+    -- Insertar categor锟絘 de prueba
     INSERT INTO seguridad.CATEGORIA (descripcion, es_valido)
     VALUES ('Categoria de prueba', 1);
     SET @id_categoria = SCOPE_IDENTITY();
 
-    -- Insertar producto de prueba asociado a la categor韆
+    -- Insertar producto de prueba asociado a la categor锟絘
     INSERT INTO productos.PRODUCTO (precio_unidad, nombre_producto, id_categoria, es_valido)
     VALUES (100, 'Nombre prueba', @id_categoria, 1);
     SET @id_producto = SCOPE_IDENTITY();
@@ -658,7 +658,7 @@ BEGIN
     INSERT INTO productos.VARIOS (id_producto, fecha, hora, unidad_de_referencia, es_valido)
     VALUES (@id_producto, GETDATE(), CONVERT(TIME, GETDATE()), 'Unidad de prueba', 1);
 
-	-- Muestro el registro insertado antes de la actualizaci髇
+	-- Muestro el registro insertado antes de la actualizaci贸n
 	SELECT * FROM productos.VARIOS WHERE id_producto = @id_producto;
 
     -- Almacenar los valores iniciales para verificar que no cambien
@@ -676,7 +676,7 @@ BEGIN
 	-- Muestro el registro actualizado
 	SELECT * FROM productos.VARIOS WHERE id_producto = @id_producto;
     
-	-- Verificar si la actualizaci髇 fue exitosa y los dem醩 campos no fueron modificados
+	-- Verificar si la actualizaci贸n fue exitosa y los dem锟絪 campos no fueron modificados
     IF EXISTS (
         SELECT 1 FROM productos.VARIOS 
         WHERE id_producto = @id_producto
@@ -685,11 +685,11 @@ BEGIN
         AND hora = @hora_original
     )
     BEGIN
-        PRINT 'TEST PASADO - Actualizaci髇 de VARIOS exitosa';
+        PRINT 'TEST PASADO - Actualizaci贸n de VARIOS exitosa';
     END
     ELSE
     BEGIN
-        PRINT 'TEST FALLIDO - Error en la actualizaci髇 de VARIOS';
+        PRINT 'TEST FALLIDO - Error en la actualizaci贸n de VARIOS';
     END
 
     -- Eliminar los datos de prueba de las tablas
@@ -714,12 +714,12 @@ BEGIN
     DECLARE @nuevo_proveedor VARCHAR(255) = 'Proveedor Modificado';
     DECLARE @nueva_cantidad_por_unidad VARCHAR(255) = '20';
 
-    -- Insertar categor韆 de prueba
+    -- Insertar categor锟絘 de prueba
     INSERT INTO seguridad.CATEGORIA (descripcion, es_valido)
     VALUES ('Categoria de prueba', 1);
     SET @id_categoria = SCOPE_IDENTITY();
 
-    -- Insertar producto de prueba asociado a la categor韆
+    -- Insertar producto de prueba asociado a la categor锟絘
     INSERT INTO productos.PRODUCTO (precio_unidad, nombre_producto, id_categoria, es_valido)
     VALUES (100, 'Nombre prueba', @id_categoria, 1);
     SET @id_producto = SCOPE_IDENTITY();
@@ -728,7 +728,7 @@ BEGIN
     INSERT INTO productos.IMPORTADO (id_producto, proveedor, cantidad_por_unidad, es_valido)
     VALUES (@id_producto, 'Proveedor Viejo', '10', 1);
 
-    -- Mostrar el registro antes de la actualizaci髇
+    -- Mostrar el registro antes de la actualizaci贸n
     SELECT * FROM productos.IMPORTADO WHERE id_producto = @id_producto;
 
     -- Almacenar los valores iniciales para verificar que no cambien
@@ -743,10 +743,10 @@ BEGIN
         @proveedor = @nuevo_proveedor, 
         @cantidad_por_unidad = @nueva_cantidad_por_unidad;
 
-    -- Mostrar el registro despu閟 de la actualizaci髇
+    -- Mostrar el registro despu锟絪 de la actualizaci贸n
     SELECT * FROM productos.IMPORTADO WHERE id_producto = @id_producto;
 
-    -- Verificar si la actualizaci髇 fue exitosa y los dem醩 campos no fueron modificados
+    -- Verificar si la actualizaci贸n fue exitosa y los dem锟絪 campos no fueron modificados
     IF EXISTS (
         SELECT 1 FROM productos.IMPORTADO 
         WHERE id_producto = @id_producto
@@ -754,11 +754,11 @@ BEGIN
         AND cantidad_por_unidad = @nueva_cantidad_por_unidad
     )
     BEGIN
-        PRINT 'TEST PASADO - Actualizaci髇 de IMPORTADO exitosa';
+        PRINT 'TEST PASADO - Actualizaci贸n de IMPORTADO exitosa';
     END
     ELSE
     BEGIN
-        PRINT 'TEST FALLIDO - Error en la actualizaci髇 de IMPORTADO';
+        PRINT 'TEST FALLIDO - Error en la actualizaci贸n de IMPORTADO';
     END
 
     -- Eliminar los datos de prueba de las tablas
@@ -781,12 +781,12 @@ BEGIN
     DECLARE @id_producto INT;
     DECLARE @nuevo_precio_unidad_en_dolares DECIMAL(10, 2) = 30.00;
 
-    -- Insertar categor韆 de prueba
+    -- Insertar categor锟絘 de prueba
     INSERT INTO seguridad.CATEGORIA (descripcion, es_valido)
     VALUES ('Categoria de prueba', 1);
     SET @id_categoria = SCOPE_IDENTITY();
 
-    -- Insertar producto de prueba asociado a la categor韆
+    -- Insertar producto de prueba asociado a la categor锟絘
     INSERT INTO productos.PRODUCTO (precio_unidad, nombre_producto, id_categoria, es_valido)
     VALUES (100, 'Nombre prueba', @id_categoria, 1);
     SET @id_producto = SCOPE_IDENTITY();
@@ -795,7 +795,7 @@ BEGIN
     INSERT INTO productos.ELECTRONICO (id_producto, precio_unidad_en_dolares, es_valido)
     VALUES (@id_producto, 20.00, 1);
 
-    -- Mostrar el registro antes de la actualizaci髇
+    -- Mostrar el registro antes de la actualizaci贸n
     SELECT * FROM productos.ELECTRONICO WHERE id_producto = @id_producto;
 
     -- Ejecutar el procedimiento para actualizar el campo precio_unidad_en_dolares
@@ -803,21 +803,21 @@ BEGIN
         @id_producto = @id_producto, 
         @precio_unidad_en_dolares = @nuevo_precio_unidad_en_dolares;
 
-    -- Mostrar el registro despu閟 de la actualizaci髇
+    -- Mostrar el registro despu锟絪 de la actualizaci贸n
     SELECT * FROM productos.ELECTRONICO WHERE id_producto = @id_producto;
 
-    -- Verificar si la actualizaci髇 fue exitosa y los dem醩 campos no fueron modificados
+    -- Verificar si la actualizaci贸n fue exitosa y los dem锟絪 campos no fueron modificados
     IF EXISTS (
         SELECT 1 FROM productos.ELECTRONICO 
         WHERE id_producto = @id_producto
         AND precio_unidad_en_dolares = @nuevo_precio_unidad_en_dolares
     )
     BEGIN
-        PRINT 'TEST PASADO - Actualizaci髇 de ELECTRONICO exitosa';
+        PRINT 'TEST PASADO - Actualizaci贸n de ELECTRONICO exitosa';
     END
     ELSE
     BEGIN
-        PRINT 'TEST FALLIDO - Error en la actualizaci髇 de ELECTRONICO';
+        PRINT 'TEST FALLIDO - Error en la actualizaci贸n de ELECTRONICO';
     END
 
     -- Eliminar los datos de prueba de las tablas
@@ -852,18 +852,18 @@ BEGIN
     INSERT INTO seguridad.CLIENTE (genero) VALUES ('Female');
     SET @id_cliente = SCOPE_IDENTITY();
 
-    -- Insertar una categor韆 de prueba
+    -- Insertar una categor锟絘 de prueba
     INSERT INTO seguridad.CATEGORIA (descripcion) VALUES ('Categoria de prueba');
     SET @id_categoria = SCOPE_IDENTITY();
 
-    -- Insertar un producto de prueba asociado a la categor韆
+    -- Insertar un producto de prueba asociado a la categor锟絘
     INSERT INTO productos.PRODUCTO (precio_unidad, nombre_producto, id_categoria, es_valido)
     VALUES (100, 'Nombre prueba', @id_categoria, 1);
     SET @id_producto = SCOPE_IDENTITY();
 
     -- Insertar un medio de pago de prueba
     INSERT INTO transacciones.MEDIO_DE_PAGO (descripcion_ingles, descripcion)
-    VALUES ('Credit Card', 'Tarjeta de Cr閐ito');
+    VALUES ('Credit Card', 'Tarjeta de Cr锟絛ito');
     SET @id_medio_pago = SCOPE_IDENTITY();
 
     -- Insertar una factura de prueba
@@ -875,12 +875,12 @@ BEGIN
     INSERT INTO seguridad.CARGO (nombre) VALUES ('Administrativo');
     SET @id_cargo = SCOPE_IDENTITY();
 
-    -- Obtener el m醲imo legajo y sumarle 1 para el nuevo empleado
+    -- Obtener el m锟絰imo legajo y sumarle 1 para el nuevo empleado
     SELECT @legajo = ISNULL(MAX(legajo), 0) + 1 FROM seguridad.EMPLEADO;
 
     -- Insertar un empleado de prueba
     INSERT INTO seguridad.EMPLEADO (legajo, nombre, apellido, dni, direccion, email_empresa, email_personal, CUIL, id_cargo, id_sucursal, turno, es_valido)
-    VALUES (@legajo, 'Juan', 'P閞ez', 12345678, 'Calle Falsa 123', 'juan@empresa.com', 'juan@gmail.com', '20123456789', @id_cargo, @id_sucursal, 'Ma馻na', 1);
+    VALUES (@legajo, 'Juan', 'P锟絩ez', 12345678, 'Calle Falsa 123', 'juan@empresa.com', 'juan@gmail.com', '20123456789', @id_cargo, @id_sucursal, 'Ma锟絘na', 1);
     SET @id_empleado = SCOPE_IDENTITY();
 
     -- Insertar sucursal de prueba
@@ -893,7 +893,7 @@ BEGIN
     VALUES (@id_factura, @id_sucursal, @id_producto,  5, '2024-11-13', '14:35:00', @id_medio_pago, @id_empleado, '1111222233334444555566');
     SET @id_venta = SCOPE_IDENTITY();
 
-    -- Mostrar el registro de VENTA antes de la actualizaci髇
+    -- Mostrar el registro de VENTA antes de la actualizaci贸n
     SELECT * FROM transacciones.VENTA WHERE id = @id_venta;
 
     -- Ejecutar el procedimiento para actualizar el campo cantidad
@@ -901,21 +901,21 @@ BEGIN
         @id = @id_venta, 
         @cantidad = @nuevo_cantidad;
 
-    -- Mostrar el registro de VENTA despu閟 de la actualizaci髇
+    -- Mostrar el registro de VENTA despu锟絪 de la actualizaci贸n
     SELECT * FROM transacciones.VENTA WHERE id = @id_venta;
 
-    -- Verificar si la actualizaci髇 fue exitosa y los dem醩 campos no fueron modificados
+    -- Verificar si la actualizaci贸n fue exitosa y los dem锟絪 campos no fueron modificados
     IF EXISTS (
         SELECT 1 FROM transacciones.VENTA 
         WHERE id = @id_venta
         AND cantidad = @nuevo_cantidad
     )
     BEGIN
-        PRINT 'TEST PASADO - Actualizaci髇 de VENTA exitosa';
+        PRINT 'TEST PASADO - Actualizaci贸n de VENTA exitosa';
     END
     ELSE
     BEGIN
-        PRINT 'TEST FALLIDO - Error en la actualizaci髇 de VENTA';
+        PRINT 'TEST FALLIDO - Error en la actualizaci贸n de VENTA';
     END
 
     -- Eliminar los datos de prueba de las tablas

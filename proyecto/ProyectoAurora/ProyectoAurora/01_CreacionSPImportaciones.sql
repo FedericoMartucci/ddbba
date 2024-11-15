@@ -85,13 +85,14 @@ BEGIN
 	WHERE NOT EXISTS (
     SELECT 1
     FROM seguridad.SUCURSAL AS aurora
-    WHERE aurora.horario = temp.horario
-      AND aurora.ciudad = temp.ciudad
+    WHERE aurora.ciudad = temp.ciudad
       AND aurora.reemplazar_por = temp.reemplazar_por
       AND aurora.direccion = LTRIM(RTRIM(REPLACE(LEFT(temp.direccion, CHARINDEX(',', temp.direccion) - 1), ' ', '')))
       AND aurora.codigo_postal = SUBSTRING(temp.direccion, CHARINDEX(', B', temp.direccion) + 2, 5)
       AND aurora.provincia = SUBSTRING(temp.direccion, CHARINDEX('Provincia', temp.direccion) + 13, LEN(temp.direccion))
 	);
+
+	SELECT * FROM seguridad.SUCURSAL
 
     INSERT INTO seguridad.TELEFONO (id_sucursal, telefono)
 	SELECT DISTINCT s.id, t.telefono
@@ -732,17 +733,15 @@ BEGIN
 	WHERE NOT EXISTS (
 	    SELECT 1
 	    FROM transacciones.VENTA v
-	    WHERE v.id_factura = f.id_factura
-	      AND v.id_sucursal = s.id
-	      AND v.id_producto = p.id_producto
+	    WHERE v.id_sucursal IN (SELECT s2.id FROM seguridad.SUCURSAL s2 WHERE s2.ciudad = t.ciudad)
+	      AND v.id_producto IN (SELECT p2.id_producto FROM productos.PRODUCTO p2 WHERE p2.nombre_producto = t.producto)
 	      AND v.cantidad = t.cantidad
 	      AND v.fecha = t.fecha
 	      AND v.hora = t.hora
-	      AND v.id_medio_de_pago = m.id
-	      AND v.id_empleado = e.id_empleado
-	      AND v.identificador_de_pago = t.identificador_de_pago
+	      AND v.id_empleado IN (SELECT e2.id_empleado FROM seguridad.EMPLEADO e2 WHERE e2.legajo = t.empleado)
+		  AND ((v.identificador_de_pago = t.identificador_de_pago) OR 
+			  (v.identificador_de_pago IS NULL AND t.identificador_de_pago IS NULL))
 	);
 	DROP TABLE #TEMP_VENTAS
 END;
 GO
-
