@@ -712,16 +712,16 @@ BEGIN
 	      AND f.tipo_de_factura = #TEMP_VENTAS.tipo_de_factura
 	);
 
-	INSERT INTO transacciones.VENTA (id_factura, id_sucursal, id_producto, cantidad, fecha, hora, id_medio_de_pago, legajo, identificador_de_pago)
+	INSERT INTO transacciones.VENTA (id_factura, id_sucursal, id_producto, cantidad, fecha, hora, id_medio_de_pago, id_empleado, identificador_de_pago)
 	SELECT DISTINCT
-	    f.id,
+	    f.id_factura,
 	    s.id,
 	    p.id_producto,
 	    t.cantidad,
 	    t.fecha,
 	    t.hora,
 	    m.id,
-	    e.legajo,
+	    e.id_empleado,
 	    t.identificador_de_pago
 	FROM #TEMP_VENTAS t
 	INNER JOIN transacciones.FACTURA f ON f.id = t.id_factura
@@ -732,14 +732,14 @@ BEGIN
 	WHERE NOT EXISTS (
 	    SELECT 1
 	    FROM transacciones.VENTA v
-	    WHERE v.id_factura = f.id
+	    WHERE v.id_factura = f.id_factura
 	      AND v.id_sucursal = s.id
 	      AND v.id_producto = p.id_producto
 	      AND v.cantidad = t.cantidad
 	      AND v.fecha = t.fecha
 	      AND v.hora = t.hora
 	      AND v.id_medio_de_pago = m.id
-	      AND v.legajo = e.legajo
+	      AND v.id_empleado = e.id_empleado
 	      AND v.identificador_de_pago = t.identificador_de_pago
 	);
 	DROP TABLE #TEMP_VENTAS

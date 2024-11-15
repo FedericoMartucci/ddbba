@@ -262,10 +262,12 @@ BEGIN
         id_medio_de_pago INT,
         id_empleado INT,
         identificador_de_pago VARCHAR(22)
-        CHECK
-        (
-            (LEN(identificador_de_pago) = 22 AND identificador_de_pago NOT LIKE '%[^0-9]%') OR identificador_de_pago IS NULL
-        ),
+		CHECK
+		(
+			(LEN(identificador_de_pago) = 22 AND identificador_de_pago NOT LIKE '%[^0-9]%') OR	--Ewallet
+			(identificador_de_pago LIKE '[0-9][0-9][0-9][0-9]-[0-9][0-9][0-9][0-9]-[0-9][0-9][0-9][0-9]-[0-9][0-9][0-9][0-9]') OR	--Credit card
+			(identificador_de_pago IS NULL) --Cash
+		), --LONGITUD MAXIMA 22 y SOLO CARACTERES NUMEROS o 4NUMEROS-4NUMEROS-4NUMEROS-4NUMEROS o NULL
         CONSTRAINT FK_ID_FACTURA_VENTA_FACTURA FOREIGN KEY (id_factura) REFERENCES transacciones.FACTURA(id_factura)
         ON DELETE CASCADE
         ON UPDATE CASCADE,
