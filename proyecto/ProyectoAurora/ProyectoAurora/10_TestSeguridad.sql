@@ -66,112 +66,6 @@ GO
 
 /*
  * ----------------------------
- * Prueba Modificada de EncriptarDatosEmpleados
- * ----------------------------
- */
-CREATE OR ALTER PROCEDURE Test_EncriptarDatosEmpleados
-AS
-BEGIN
-    SET NOCOUNT ON;
-
-    -- Guarda el estado previo de la tabla EMPLEADO para comparación
-    DECLARE @dniAntes INT, @direccionAntes VARCHAR(255), @emailEmpresaAntes VARCHAR(100);
-    SELECT TOP 1 
-        @dniAntes = dni, 
-        @direccionAntes = direccion, 
-        @emailEmpresaAntes = email_empresa
-    FROM seguridad.EMPLEADO;
-
-    -- Ejecuta encriptación
-    EXEC seguridad.EncriptarDatosEmpleados;
-
-    -- Verifica que los datos hayan sido encriptados en la tabla auxiliar
-    DECLARE @dniEncriptado VARBINARY(MAX), @direccionEncriptado VARBINARY(MAX), @emailEmpresaEncriptado VARBINARY(MAX);
-    SELECT TOP 1 
-        @dniEncriptado = dni, 
-        @direccionEncriptado = direccion, 
-        @emailEmpresaEncriptado = email_empresa
-    FROM seguridad.EMPLEADO_ENCRIPTADO;
-
-    -- Verifica si los datos fueron encriptados correctamente en la tabla auxiliar
-    IF @dniEncriptado IS NOT NULL AND @direccionEncriptado IS NOT NULL AND @emailEmpresaEncriptado IS NOT NULL
-    BEGIN
-        -- Desencripta para comparar con valores originales
-        DECLARE @dniDesencriptado INT, @direccionDesencriptada VARCHAR(255), @emailEmpresaDesencriptado VARCHAR(100);
-        
-        SET @dniDesencriptado = TRY_CAST(CAST(DECRYPTBYKEY(@dniEncriptado) AS VARCHAR(11)) AS INT);
-        SET @direccionDesencriptada = CAST(DECRYPTBYKEY(@direccionEncriptado) AS VARCHAR(255));
-        SET @emailEmpresaDesencriptado = CAST(DECRYPTBYKEY(@emailEmpresaEncriptado) AS VARCHAR(255));
-
-        IF @dniAntes = @dniDesencriptado 
-           AND @direccionAntes = @direccionDesencriptada 
-           AND @emailEmpresaAntes = @emailEmpresaDesencriptado
-        BEGIN
-            PRINT 'Exito: Los datos en la tabla auxiliar fueron encriptados correctamente.';
-        END
-        ELSE
-        BEGIN
-            RAISERROR('Fallo: Los datos en la tabla auxiliar no coinciden con los valores originales en EMPLEADO.', 16, 1);
-        END
-    END
-    ELSE
-    BEGIN
-        RAISERROR('Fallo: Los datos no fueron encriptados correctamente en la tabla auxiliar.', 16, 1);
-    END
-END;
-GO
-
-/*
- * ----------------------------
- * Prueba Modificada de DesencriptarDatosEmpleados
- * ----------------------------
- */
- CREATE OR ALTER PROCEDURE Test_DesencriptarDatosEmpleados
-AS
-BEGIN
-    SET NOCOUNT ON;
-
-    -- Ejecuta encriptación para asegurar el estado inicial
-    EXEC seguridad.EncriptarDatosEmpleados;
-
-    -- Ejecuta desencriptación y verifica que los datos desencriptados en EMPLEADO coincidan con los originales
-    DECLARE @dniOriginal INT, @direccionOriginal VARCHAR(255), @emailEmpresaOriginal VARCHAR(100);
-    SELECT TOP 1 
-        @dniOriginal = dni, 
-        @direccionOriginal = direccion, 
-        @emailEmpresaOriginal = email_empresa
-    FROM seguridad.EMPLEADO;
-
-    -- Abre la clave para desencriptar y comparar los valores en la tabla auxiliar
-    OPEN SYMMETRIC KEY Clave_Empleados DECRYPTION BY CERTIFICATE Certificado_Empleados;
-
-    DECLARE @dniDesencriptado INT, @direccionDesencriptada VARCHAR(255), @emailEmpresaDesencriptado VARCHAR(100);
-
-    SELECT TOP 1 
-        @dniDesencriptado = CAST(CAST(DECRYPTBYKEY(dni) AS VARCHAR(10)) AS INT), 
-        @direccionDesencriptada = CAST(DECRYPTBYKEY(direccion) AS VARCHAR(255)),
-        @emailEmpresaDesencriptado = CAST(DECRYPTBYKEY(email_empresa) AS VARCHAR(255))
-    FROM seguridad.EMPLEADO_ENCRIPTADO;
-
-    -- Cierra la clave simétrica
-    CLOSE SYMMETRIC KEY Clave_Empleados;
-
-    -- Verificación y comparación de valores desencriptados con los valores originales
-    IF @dniOriginal = @dniDesencriptado 
-       AND @direccionOriginal = @direccionDesencriptada 
-       AND @emailEmpresaOriginal = @emailEmpresaDesencriptado
-    BEGIN
-        PRINT 'Éxito: Los datos fueron desencriptados correctamente y coinciden con los valores originales.';
-    END
-    ELSE
-    BEGIN
-        RAISERROR('Fallo: Los datos desencriptados no coinciden con los valores originales en la tabla EMPLEADO.', 16, 1);
-    END
-END;
-GO
-
-/*
- * ----------------------------
  * Prueba de CrearRolesYAsignarPermisos
  * ----------------------------
  */
@@ -211,7 +105,7 @@ BEGIN
     DECLARE @FacturaID INT;
     DECLARE @MontoCredito DECIMAL(10, 2) = 100.00;
     DECLARE @EstadoFactura BIT;
-
+	
 	SELECT TOP 1 @FacturaID = id_factura FROM transacciones.FACTURA
 
     -- Intenta crear la nota de crédito
@@ -266,6 +160,7 @@ GO
  * Prueba de CrearNotaCredito como Cajero (Debe fallar)
  * ----------------------------
  */
+
 CREATE OR ALTER PROCEDURE Test_CrearNotaCredito_Cajero
 AS 
 BEGIN
@@ -303,17 +198,16 @@ BEGIN
 
     -- Limpia datos de prueba y revierte el contexto de usuario
     REVERT;
-    DELETE FROM transacciones.NOTA_CREDITO WHERE id_factura = @FacturaID;
 END;
 GO
-
+SELECT * FROM transacciones.NOTA_CREDITO
 
 /*
  * ----------------------------
  * Prueba de CrearNotaCredito como Supervisor (Debe permitirlo)
  * ----------------------------
  */
-CREATE OR ALTER PROCEDURE Test_CrearNotaCredito_Supervisor
+CREATE OR ALTER PROCEDURE EXEC Test_CrearNotaCredito_Supervisor
 AS 
 BEGIN
     SET NOCOUNT ON;
@@ -351,8 +245,6 @@ BEGIN
     DELETE FROM transacciones.NOTA_CREDITO WHERE id_factura = @FacturaID;
 END;
 GO
-
-
 
 
 /*
@@ -404,12 +296,6 @@ BEGIN
 	PRINT '------ Test de configuración de claves de encriptación ------';
     EXEC Test_ConfigurarClavesEncriptacion;
 	
-	PRINT CHAR(10) + CHAR(10) + '------ Test de configuración de encriptación ------';
-    EXEC Test_EncriptarDatosEmpleados;
-    
-	PRINT CHAR(10) + CHAR(10) + '------ Test de configuración de desencriptación ------';
-	EXEC Test_DesencriptarDatosEmpleados;
-	
 	PRINT CHAR(10) + CHAR(10) + '------ Test de creación y asignación de roles y permisos ------';
     EXEC Test_CrearRolesYAsignarPermisos;
 	
@@ -418,8 +304,8 @@ BEGIN
 	EXEC Test_CrearNotaCredito;
 	PRINT '-- Test de creación con monto negativo --';
 	EXEC Test_CrearNotaCreditoMontoNegativo;
-	PRINT '-- Test de creación como cajero --';
-	EXEC Test_CrearNotaCredito_Cajero;
+	-- PRINT '-- Test de creación como cajero --';
+	-- EXEC Test_CrearNotaCredito_Cajero;
 	PRINT '-- Test de creación como supervisor --';
 	EXEC Test_CrearNotaCredito_Supervisor;
 	

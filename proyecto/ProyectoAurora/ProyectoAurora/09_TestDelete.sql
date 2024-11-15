@@ -15,11 +15,9 @@
 */
 
 USE Com5600G08;
-
 GO
 
 SET NOCOUNT ON;
-
 GO
 
 -- Defino un código de error con un mensaje asociado (eliminar algo que no existe)
@@ -630,8 +628,15 @@ BEGIN
         SELECT @legajo = ISNULL(MAX(legajo), 0) + 1 FROM seguridad.EMPLEADO;
 
         -- Insertar un empleado asociado al cargo
-        INSERT INTO seguridad.EMPLEADO (legajo, nombre, apellido, dni, direccion, email_empresa, email_personal, CUIL, id_cargo, id_sucursal, turno)
-        VALUES (@legajo, 'Juan', 'Pérez', 12345678, 'Calle Falsa 123', 'juan@empresa.com', 'juan@gmail.com', '20123456789', @id, @id_sucursal, 'Mañana');
+		INSERT INTO seguridad.EMPLEADO (legajo, nombre, apellido, dni, direccion, email_empresa, email_personal, CUIL, id_cargo, id_sucursal, turno, es_valido)
+		VALUES 
+		(@legajo, 'Juan', 'Pérez', 
+		CONVERT(VARBINARY(MAX), '12345678'), 
+		CONVERT(VARBINARY(MAX), 'Calle Falsa 123'), 
+		CONVERT(VARBINARY(MAX), 'jperez@empresa.com'), 
+		CONVERT(VARBINARY(MAX), 'jperez@gmail.com'), 
+		CONVERT(VARBINARY(MAX), '20123456789'), 
+		@id, @id_sucursal, 'Mañana', 1);
 
         -- Intentar ejecutar el procedimiento de eliminación lógica
         EXEC borrado.EliminarCargoLogico @id;
@@ -797,8 +802,16 @@ BEGIN
         SET @id_sucursal = SCOPE_IDENTITY();
 
         -- Inserto un empleado asociado a la sucursal y el cargo previamente insertado
-        INSERT INTO seguridad.EMPLEADO (nombre, apellido, dni, direccion, email_empresa, email_personal, CUIL, id_cargo, id_sucursal, turno, es_valido)
-        VALUES ('Juan', 'Pérez', 12345678, 'Calle Falsa 123', 'juan@empresa.com', 'juan@gmail.com', '20123456789', @id_cargo, @id_sucursal, 'Mañana', 1);
+		INSERT INTO seguridad.EMPLEADO 
+		(nombre, apellido, dni, direccion, email_empresa, email_personal, CUIL, id_cargo, id_sucursal, turno, es_valido)
+		VALUES 
+		('Juan', 'Pérez', 
+		CONVERT(VARBINARY(MAX), '12345678'), 
+		CONVERT(VARBINARY(MAX), 'Calle Falsa 123'), 
+		CONVERT(VARBINARY(MAX), 'jperez@empresa.com'), 
+		CONVERT(VARBINARY(MAX), 'jperez@gmail.com'), 
+		CONVERT(VARBINARY(MAX), '20123456789'), 
+		@id_cargo, @id_sucursal, 'Mañana', 1);
 
         -- Muestro los registros insertados
         SELECT * FROM seguridad.SUCURSAL WHERE id = @id_sucursal;
@@ -929,9 +942,16 @@ BEGIN
         SELECT @nuevo_legajo = ISNULL(MAX(legajo), 0) + 1 FROM seguridad.EMPLEADO;
 
         -- Insertar un empleado de prueba asociado a la sucursal y cargo, en estado activo
-        INSERT INTO seguridad.EMPLEADO (legajo, nombre, apellido, dni, direccion, email_empresa, email_personal, CUIL, id_cargo, id_sucursal, turno, es_valido)
-        VALUES (@nuevo_legajo, 'Test', 'Empleado', 12345678, 'Calle Falsa 456', 'test@empresa.com', 'test@gmail.com', '20123456789', @id_cargo, @id_sucursal, 'Tarde', 1);
-
+        INSERT INTO seguridad.EMPLEADO 
+		(legajo, nombre, apellido, dni, direccion, email_empresa, email_personal, CUIL, id_cargo, id_sucursal, turno, es_valido)
+		VALUES 
+		(@nuevo_legajo, 'Test', 'Empleado', 
+		CONVERT(VARBINARY(MAX), '12345678'), 
+		CONVERT(VARBINARY(MAX), 'Calle Falsa 456'), 
+		CONVERT(VARBINARY(MAX), 'test@empresa.com'), 
+		CONVERT(VARBINARY(MAX), 'test@gmail.com'), 
+		CONVERT(VARBINARY(MAX), '20123456789'), 
+		@id_cargo, @id_sucursal, 'Tarde', 1);
         -- Verificar inserción
         SELECT * FROM seguridad.EMPLEADO WHERE legajo = @nuevo_legajo;
 
@@ -991,8 +1011,14 @@ BEGIN
 
         -- Insertar un empleado de prueba asociado a la sucursal y cargo, en estado activo
         INSERT INTO seguridad.EMPLEADO (legajo, nombre, apellido, dni, direccion, email_empresa, email_personal, CUIL, id_cargo, id_sucursal, turno, es_valido)
-        VALUES (@nuevo_legajo, 'Test', 'Empleado', 12345678, 'Calle Falsa 456', 'test@empresa.com', 'test@gmail.com', '20123456789', @id_cargo, @id_sucursal, 'Tarde', 1);
-
+		VALUES 
+		(@nuevo_legajo, 'Test', 'Empleado', 
+		CONVERT(VARBINARY(MAX), '12345678'), 
+		CONVERT(VARBINARY(MAX), 'Calle Falsa 456'), 
+		CONVERT(VARBINARY(MAX), 'test@empresa.com'), 
+		CONVERT(VARBINARY(MAX), 'test@gmail.com'), 
+		CONVERT(VARBINARY(MAX), '20123456789'), 
+		@id_cargo, @id_sucursal, 'Tarde', 1);
         -- Desactivar el empleado insertado (para probar la eliminación de un empleado inactivo)
         UPDATE seguridad.EMPLEADO SET es_valido = 0 WHERE legajo = @nuevo_legajo;
 
@@ -1182,10 +1208,17 @@ BEGIN
         SELECT @legajo = ISNULL(MAX(legajo), 0) + 1 FROM seguridad.EMPLEADO;
 
         -- Insertar un empleado de prueba
-        INSERT INTO seguridad.EMPLEADO (legajo, nombre, apellido, dni, direccion, email_empresa, email_personal, CUIL, id_cargo, id_sucursal, turno, es_valido)
-        VALUES (@legajo, 'Juan', 'Pérez', 12345678, 'Calle Falsa 123', 'juan@empresa.com', 'juan@gmail.com', '20123456789', @id_cargo, @id_sucursal, 'Mañana', 1);
-        SET @id_empleado = SCOPE_IDENTITY();
-
+		INSERT INTO seguridad.EMPLEADO 
+		(legajo, nombre, apellido, dni, direccion, email_empresa, email_personal, CUIL, id_cargo, id_sucursal, turno, es_valido)
+		VALUES 
+		(@legajo, 'Juan', 'Pérez', 
+		CONVERT(VARBINARY(MAX), '12345678'), 
+		CONVERT(VARBINARY(MAX), 'Calle Falsa 123'), 
+		CONVERT(VARBINARY(MAX), 'juan@empresa.com'), 
+		CONVERT(VARBINARY(MAX), 'juan@gmail.com'), 
+		CONVERT(VARBINARY(MAX), '20123456789'), 
+		@id_cargo, @id_sucursal, 'Mañana', 1);
+		SET @id_empleado = SCOPE_IDENTITY();
         -- Insertar una venta de prueba
         INSERT INTO transacciones.VENTA (id_factura, id_sucursal, id_producto, cantidad, fecha, hora, id_medio_de_pago, id_empleado, identificador_de_pago)
         VALUES (@id_factura, @id_sucursal, @id_producto, 5, '2024-11-13', '14:35:00', @id_medio_pago, @id_empleado, '1111222233334444555566');
@@ -1199,7 +1232,7 @@ BEGIN
 
 		-- Verifico que se haya eliiminado
 		SELECT * FROM transacciones.VENTA WHERE id = @id_venta;
-
+		
         -- Verificar si la venta se eliminó correctamente
         IF NOT EXISTS (SELECT 1 FROM transacciones.VENTA WHERE id = @id_venta)
             PRINT 'TEST PASADO - Eliminación física de venta exitosa';

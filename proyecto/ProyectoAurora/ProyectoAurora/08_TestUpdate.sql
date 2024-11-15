@@ -91,10 +91,16 @@ BEGIN
     SELECT @legajo = ISNULL(MAX(legajo), 0) + 1 FROM seguridad.EMPLEADO;
 
     INSERT INTO seguridad.EMPLEADO 
-        (legajo, nombre, apellido, dni, direccion, email_empresa, email_personal, CUIL, id_cargo, id_sucursal, turno, es_valido)
-    VALUES 
-        (@legajo, 'Juan', 'P�rez', 12345678, 'Calle Falsa 123', 'jperez@empresa.com', 'jperez@gmail.com', '20123456789', @id_cargo, @id_sucursal, 'Ma�ana', 1);
-	
+    (legajo, nombre, apellido, dni, direccion, email_empresa, email_personal, CUIL, id_cargo, id_sucursal, turno, es_valido)
+	VALUES 
+    (@legajo, 'Juan', 'Pérez', 
+    CONVERT(VARBINARY(MAX), '12345678'), 
+    CONVERT(VARBINARY(MAX), 'Calle Falsa 123'), 
+    CONVERT(VARBINARY(MAX), 'jperez@empresa.com'), 
+    CONVERT(VARBINARY(MAX), 'jperez@gmail.com'), 
+    CONVERT(VARBINARY(MAX), '20123456789'), 
+    @id_cargo, @id_sucursal, 'Mañana', 1);
+
 	SET @id_empleado = SCOPE_IDENTITY();
 
     -- Almacenar los valores originales
@@ -380,14 +386,14 @@ BEGIN
 
 	BEGIN TRY
 
-		SELECT * from transacciones.FACTURA WHERE @id_factura = @id_factura;
+		SELECT * from transacciones.FACTURA WHERE id_factura = @id_factura;
 
         -- Ejecutar el procedimiento almacenado para actualizar el estado
         EXEC actualizaciones.ActualizarFactura
             @id_factura = @id_factura,
             @estado = 1; -- Cambiar el estado a 1 (activo)
 		
-		SELECT * from transacciones.FACTURA WHERE @id_factura = @id_factura;
+		SELECT * from transacciones.FACTURA WHERE id_factura = @id_factura;
 
         -- Verificar que la actualización se haya realizado correctamente
         SELECT @resultadoEstado = estado, @id_insertado = id
@@ -446,13 +452,13 @@ BEGIN
 		SET @id_nota_credito = SCOPE_IDENTITY();
 
 
-		SELECT * FROM transacciones.NOTA_CREDITO WHERE @id_nota_credito =  @id_nota_credito;
+		SELECT * FROM transacciones.NOTA_CREDITO WHERE id =  @id_nota_credito;
 		
 		EXEC actualizaciones.actualizarNotaCredito 
 		@id = @id_nota_credito, 
 		@monto = @monto_nuevo;
 
-		SELECT * FROM transacciones.NOTA_CREDITO WHERE @id_nota_credito =  @id_nota_credito;
+		SELECT * FROM transacciones.NOTA_CREDITO WHERE id =  @id_nota_credito;
 		
 		SELECT @monto_actualizado = monto, @id_factura_actualizado = id_factura FROM transacciones.NOTA_CREDITO
 
@@ -468,7 +474,7 @@ BEGIN
 	END CATCH
 
 	DELETE FROM transacciones.NOTA_CREDITO WHERE id = @id_nota_credito;
-	DELETE FROM transacciones.FACTURA WHERE @id_factura = @id_factura;
+	DELETE FROM transacciones.FACTURA WHERE id_factura = @id_factura;
 
 END;
 GO
@@ -879,8 +885,17 @@ BEGIN
     SELECT @legajo = ISNULL(MAX(legajo), 0) + 1 FROM seguridad.EMPLEADO;
 
     -- Insertar un empleado de prueba
-    INSERT INTO seguridad.EMPLEADO (legajo, nombre, apellido, dni, direccion, email_empresa, email_personal, CUIL, id_cargo, id_sucursal, turno, es_valido)
-    VALUES (@legajo, 'Juan', 'P�rez', 12345678, 'Calle Falsa 123', 'juan@empresa.com', 'juan@gmail.com', '20123456789', @id_cargo, @id_sucursal, 'Ma�ana', 1);
+    INSERT INTO seguridad.EMPLEADO 
+    (legajo, nombre, apellido, dni, direccion, email_empresa, email_personal, CUIL, id_cargo, id_sucursal, turno, es_valido)
+	VALUES 
+    (@legajo, 'Juan', 'Pérez', 
+    CONVERT(VARBINARY(MAX), '12345678'), 
+    CONVERT(VARBINARY(MAX), 'Calle Falsa 123'), 
+    CONVERT(VARBINARY(MAX), 'jperez@empresa.com'), 
+    CONVERT(VARBINARY(MAX), 'jperez@gmail.com'), 
+    CONVERT(VARBINARY(MAX), '20123456789'), 
+    @id_cargo, @id_sucursal, 'Mañana', 1);
+
     SET @id_empleado = SCOPE_IDENTITY();
 
     -- Insertar sucursal de prueba

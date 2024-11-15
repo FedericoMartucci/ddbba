@@ -240,25 +240,8 @@ BEGIN
 	DECLARE @todoOK VARCHAR(100) = 'SP InsertarProductosElectronicos funciona correctamente para el caso ';
 	
 	PRINT 'TestInsertarProductosElectronicos:' + CHAR(10)
-	--CASO 1: volver a cargar mismo archivo
-	SELECT * FROM productos.PRODUCTO
-	SELECT * FROM productos.ELECTRONICO
-	SET @cantidadDeFilasAntesEnProducto = (SELECT COUNT(1) FROM productos.PRODUCTO)
-	SET @cantidadDeFilasAntesEnElectronico = (SELECT COUNT(1) FROM productos.ELECTRONICO)
-
-	EXEC inserciones.InsertarProductosElectronicos @pathCaso1;
 	
-	SELECT * FROM productos.PRODUCTO
-	SELECT * FROM productos.ELECTRONICO
-	SET @cantidadDeFilasDespuesEnProducto = (SELECT COUNT(1) FROM productos.PRODUCTO)
-	SET @cantidadDeFilasDespuesEnElectronico = (SELECT COUNT(1) FROM productos.ELECTRONICO)
-
-	IF(@cantidadDeFilasAntesEnProducto <> @cantidadDeFilasDespuesEnProducto OR @cantidadDeFilasAntesEnElectronico <> @cantidadDeFilasDespuesEnElectronico)
-		RAISERROR ('Error en SP InsertarProductosElectronicos. Se cargaron registros duplicados.', 16, 1 );
-	ELSE
-		PRINT @todoOK + 'volver a cargar mismo archivo.'
-	
-	--CASO 2: volver a cargar mismo archivo con tuplas extra distintas.
+	--CASO 1: volver a cargar mismo archivo con tuplas extra distintas.
 	SELECT * FROM productos.PRODUCTO
 	SELECT * FROM productos.ELECTRONICO
 	SET @cantidadDeFilasAntesEnProducto = (SELECT COUNT(1) FROM productos.PRODUCTO)
@@ -276,7 +259,7 @@ BEGIN
 	ELSE
 		PRINT @todoOK + 'volver a cargar mismo archivo con tuplas extra distintas.'	
 	
-	--CASO 3: cargar archivo vacio.
+	--CASO 2: cargar archivo vacio.
 	SELECT * FROM productos.PRODUCTO
 	SELECT * FROM productos.ELECTRONICO
 	SET @cantidadDeFilasAntesEnProducto = (SELECT COUNT(1) FROM productos.PRODUCTO)

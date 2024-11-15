@@ -107,24 +107,26 @@ CREATE OR ALTER PROCEDURE actualizaciones.ActualizarEmpleado
     @legajo INT = NULL,
     @nombre VARCHAR(50) = NULL,
     @apellido VARCHAR(50) = NULL,
-    @dni INT = NULL,
-    @direccion VARCHAR(150) = NULL,
-    @email_empresa VARCHAR(100) = NULL,
-    @email_personal VARCHAR(100) = NULL,
-    @CUIL CHAR(11) = NULL,
+	@dni VARBINARY(256) = NULL,
+    @direccion VARBINARY(512) = NULL,
+    @email_empresa VARBINARY(512) = NULL,
+    @email_personal VARBINARY(512) = NULL,
+    @CUIL VARBINARY(256) = NULL,
     @id_cargo INT = NULL,
     @id_sucursal INT = NULL,
     @turno VARCHAR(50) = NULL,
     @es_valido INT = NULL
 AS
 BEGIN
+    -- Actualiza la tabla con los valores proporcionados
     UPDATE seguridad.EMPLEADO
-    SET legajo = COALESCE(@legajo, legajo),
-		nombre = COALESCE(@nombre, nombre),
+    SET 
+        legajo = COALESCE(@legajo, legajo),
+        nombre = COALESCE(@nombre, nombre),
         apellido = COALESCE(@apellido, apellido),
-        dni = COALESCE(@dni, dni),
-        direccion = COALESCE(@direccion, direccion),
-        email_empresa = COALESCE(@email_empresa, email_empresa),
+        dni = COALESCE(@dni,dni),
+        direccion = COALESCE(@direccion,direccion),
+        email_empresa = COALESCE(@email_empresa,email_empresa),
         email_personal = COALESCE(@email_personal, email_personal),
         CUIL = COALESCE(@CUIL, CUIL),
         id_cargo = COALESCE(@id_cargo, id_cargo),

@@ -92,8 +92,6 @@ BEGIN
       AND aurora.provincia = SUBSTRING(temp.direccion, CHARINDEX('Provincia', temp.direccion) + 13, LEN(temp.direccion))
 	);
 
-	SELECT * FROM seguridad.SUCURSAL
-
     INSERT INTO seguridad.TELEFONO (id_sucursal, telefono)
 	SELECT DISTINCT s.id, t.telefono
 	FROM seguridad.SUCURSAL s
@@ -110,94 +108,87 @@ END;
 GO
 
 /*
-				==============================================================
-				=			Procedure para insertar los empleados			 =
-				==============================================================
+==============================================================
+=        Procedure para insertar los empleados              =
+==============================================================
 */
 
-CREATE OR ALTER PROCEDURE inserciones.InsertarEmpleados(@path VARCHAR(255))	--InformacionComplementaria
+CREATE OR ALTER PROCEDURE inserciones.InsertarEmpleados(@path VARCHAR(255)) -- InformacionComplementaria
 AS
 BEGIN
+    -- Crear la tabla temporal para almacenar los datos del archivo Excel
     CREATE TABLE #TEMP_EMPLEADO (
         legajo INT CONSTRAINT PK_TEMPEMPLEADO_LEGAJO PRIMARY KEY,
         nombre VARCHAR(50) NOT NULL,
         apellido VARCHAR(50) NOT NULL,
-        dni INT NOT NULL,
-        direccion VARCHAR(150) NOT NULL,
-        email_empresa VARCHAR(100) NOT NULL,
-        email_personal VARCHAR(100),
-        CUIL CHAR(11),
+        dni NVARCHAR(256) NOT NULL,
+        direccion NVARCHAR(512) NOT NULL,
+        email_empresa NVARCHAR(512) NOT NULL,
+        email_personal NVARCHAR(512),
+        CUIL NVARCHAR(256),
         cargo VARCHAR(50),
         sucursal VARCHAR(50),
         turno VARCHAR(50)
     );
 
-	-- Armar el comando dinámico para OPENROWSET con el path
-	DECLARE @sql NVARCHAR(MAX);
+    -- Armar el comando dinámico para cargar los datos del archivo Excel en la tabla temporal
+    DECLARE @sql NVARCHAR(MAX);
     SET @sql = N'INSERT INTO #TEMP_EMPLEADO (legajo, nombre, apellido, dni, direccion, email_personal, email_empresa, CUIL, cargo, sucursal, turno)
                  SELECT * FROM OPENROWSET(''Microsoft.ACE.OLEDB.16.0'', 
                  ''Excel 12.0; HDR=YES; Database=' + @path + ''', 
                  ''SELECT * FROM [Empleados$]'')
-				 WHERE [Legajo/ID] IS NOT NULL;';
+                 WHERE [Legajo/ID] IS NOT NULL;';
 
     -- Ejecutar el comando dinámico
     EXEC sp_executesql @sql;
 
-	IF NOT EXISTS ( SELECT TOP 1 1 FROM #TEMP_EMPLEADO
-	WHERE 
-	legajo IS NOT NULL OR
-	nombre IS NOT NULL OR
-	apellido IS NOT NULL OR
-	dni IS NOT NULL OR
-	direccion IS NOT NULL OR
-	email_personal IS NOT NULL OR
-	email_empresa IS NOT NULL OR
-	cargo IS NOT NULL OR
-	sucursal IS NOT NULL OR
-	turno IS NOT NULL
-	)
+    -- Validar que se hayan cargado datos en la tabla temporal
+    IF NOT EXISTS (SELECT TOP 1 1 FROM #TEMP_EMPLEADO)
     BEGIN
-        EXEC SP_SQLEXEC 'DROP TABLE #TEMP_EMPLEADO;'
-		RETURN;
+        EXEC SP_SQLEXEC 'DROP TABLE #TEMP_EMPLEADO;';
+        RETURN;
     END
 
-    --Validamos no cargar datos duplicados
-	INSERT INTO seguridad.CARGO (nombre)
-	SELECT DISTINCT cargo
-	FROM #TEMP_EMPLEADO
-	WHERE cargo IS NOT NULL
-	AND NOT EXISTS (
-      SELECT 1
-      FROM seguridad.CARGO c
-      WHERE c.nombre = cargo
-	);
-    
-	INSERT INTO seguridad.EMPLEADO (legajo, nombre, apellido, dni, direccion, email_empresa, email_personal, CUIL, id_cargo, id_sucursal, turno)
-	SELECT DISTINCT
-		e.legajo,
-		e.nombre,
-		e.apellido,
-		e.dni,
-		e.direccion,
-		e.email_empresa,
-		e.email_personal,
-		e.CUIL,
-		c.id AS id_cargo,
-		s.id AS id_sucursal,
-		e.turno
-	FROM 
-		#TEMP_EMPLEADO e
-		LEFT JOIN seguridad.CARGO c ON e.cargo = c.nombre
-		LEFT JOIN seguridad.SUCURSAL s ON e.sucursal = s.reemplazar_por
-	WHERE NOT EXISTS (
-    SELECT 1 
-    FROM seguridad.EMPLEADO emp
-    WHERE emp.legajo = e.legajo
-	);
+    -- Validar que no se carguen datos duplicados en la tabla de CARGO
+    INSERT INTO seguridad.CARGO (nombre)
+    SELECT DISTINCT cargo
+    FROM #TEMP_EMPLEADO
+    WHERE cargo IS NOT NULL
+    AND NOT EXISTS (
+        SELECT 1
+        FROM seguridad.CARGO c
+        WHERE c.nombre = cargo
+    );
 
+    -- Insertar en la tabla EMPLEADO realizando las conversiones necesarias a VARBINARY
+    INSERT INTO seguridad.EMPLEADO (legajo, nombre, apellido, dni, direccion, email_empresa, email_personal, CUIL, id_cargo, id_sucursal, turno)
+    SELECT DISTINCT
+        e.legajo,
+        e.nombre,
+        e.apellido,
+        CONVERT(VARBINARY(256), e.dni),
+        CONVERT(VARBINARY(512), e.direccion),
+        CONVERT(VARBINARY(512), e.email_empresa),
+        CONVERT(VARBINARY(512), e.email_personal),
+        CONVERT(VARBINARY(256), e.CUIL),
+        c.id AS id_cargo,
+        s.id AS id_sucursal,
+        e.turno
+    FROM
+        #TEMP_EMPLEADO e
+        LEFT JOIN seguridad.CARGO c ON e.cargo = c.nombre
+        LEFT JOIN seguridad.SUCURSAL s ON e.sucursal = s.reemplazar_por
+    WHERE NOT EXISTS (
+        SELECT 1 
+        FROM seguridad.EMPLEADO emp
+        WHERE emp.legajo = e.legajo
+    );
+
+    -- Eliminar la tabla temporal
     DROP TABLE #TEMP_EMPLEADO;
 END;
 GO
+
 
 /*
 				==============================================================

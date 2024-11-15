@@ -40,7 +40,6 @@ BEGIN
 END;
 GO
 
-
 /*
 				==============================================================
 				=			Procedure para encriptar datos de empleado		 =
@@ -50,33 +49,45 @@ GO
 CREATE OR ALTER PROCEDURE seguridad.EncriptarDatosEmpleados
 AS
 BEGIN
+    -- Abre la clave simétrica para la encriptación
     OPEN SYMMETRIC KEY Clave_Empleados DECRYPTION BY CERTIFICATE Certificado_Empleados;
+
+    -- Actualiza la tabla encriptando los campos sensibles
     UPDATE seguridad.EMPLEADO
     SET 
-        dni = ENCRYPTBYKEY(KEY_GUID('Clave_Empleados'), CAST(dni AS VARCHAR(10))),
-        direccion = ENCRYPTBYKEY(KEY_GUID('Clave_Empleados'), direccion),
-        email_empresa = ENCRYPTBYKEY(KEY_GUID('Clave_Empleados'), email_empresa),
-        email_personal = ENCRYPTBYKEY(KEY_GUID('Clave_Empleados'), email_personal),
-        CUIL = ENCRYPTBYKEY(KEY_GUID('Clave_Empleados'), CUIL);
+        dni = ENCRYPTBYKEY(KEY_GUID('Clave_Empleados'), CONVERT(NVARCHAR(10), dni)),
+        direccion = ENCRYPTBYKEY(KEY_GUID('Clave_Empleados'), CONVERT(NVARCHAR(255), direccion)),
+        email_empresa = ENCRYPTBYKEY(KEY_GUID('Clave_Empleados'), CONVERT(NVARCHAR(255), email_empresa)),
+        email_personal = ENCRYPTBYKEY(KEY_GUID('Clave_Empleados'), CONVERT(NVARCHAR(255), email_personal)),
+        CUIL = ENCRYPTBYKEY(KEY_GUID('Clave_Empleados'), CONVERT(NVARCHAR(20), CUIL));
+
+    -- Cierra la clave simétrica
     CLOSE SYMMETRIC KEY Clave_Empleados;
 
     PRINT 'Datos de empleados encriptados con éxito.';
 END;
 GO
 
+
 CREATE OR ALTER PROCEDURE seguridad.DesencriptarDatosEmpleados
 AS
 BEGIN
-    -- Abre la clave simétrica utilizando el certificado
+    -- Abre la clave simétrica para la desencriptación
     OPEN SYMMETRIC KEY Clave_Empleados DECRYPTION BY CERTIFICATE Certificado_Empleados;
 
     -- Selecciona los datos desencriptados
     SELECT 
-        dni = CAST(CAST(DECRYPTBYKEY(CAST(dni AS VARCHAR(11)))AS VARCHAR(11)) AS INT),   -- Desencriptamos y convertimos a VARCHAR
-        direccion = CAST(DECRYPTBYKEY(direccion) AS VARCHAR(255)),  -- Desencriptamos y convertimos a VARCHAR
-        email_empresa = CAST(DECRYPTBYKEY(email_empresa) AS VARCHAR(255)),
-        email_personal = CAST(DECRYPTBYKEY(email_personal) AS VARCHAR(255)),
-        CUIL = CAST(DECRYPTBYKEY(CUIL) AS VARCHAR(20))  -- Desencriptamos y convertimos a VARCHAR
+        legajo,
+        nombre,
+        apellido,
+        dni = CONVERT(NVARCHAR(50), DECRYPTBYKEY(dni)), 
+        direccion = CONVERT(NVARCHAR(512), DECRYPTBYKEY(direccion)),  
+        email_empresa = CONVERT(NVARCHAR(512), DECRYPTBYKEY(email_empresa)),
+        email_personal = CONVERT(NVARCHAR(512), DECRYPTBYKEY(email_personal)),
+        CUIL = CONVERT(NVARCHAR(20), DECRYPTBYKEY(CUIL)),
+        id_cargo,
+        id_sucursal,
+        turno
     FROM seguridad.EMPLEADO;
 
     -- Cierra la clave simétrica
@@ -85,6 +96,7 @@ BEGIN
     PRINT 'Datos de empleados desencriptados con éxito.';
 END;
 GO
+
 
 /*
 				==============================================================
@@ -152,7 +164,7 @@ GO
 */
 -- Genera una nota de crédito solo si la factura está pagada y el usuario tiene el rol de Supervisor.
 CREATE OR ALTER PROCEDURE seguridad.CrearNotaCredito
-    @FacturaID CHAR(11),
+    @FacturaID INT,
     @MontoCredito DECIMAL(10, 2)
 AS
 BEGIN
@@ -165,7 +177,7 @@ BEGIN
 	DECLARE @EstadoFactura BIT;
 
     -- Verificar que la factura esté pagada
-    SELECT @EstadoFactura = estado FROM transacciones.FACTURA WHERE id = @FacturaID;
+    SELECT @EstadoFactura = estado FROM transacciones.FACTURA WHERE id_factura = @FacturaID;
 
     IF @EstadoFactura = 1
     BEGIN
@@ -200,7 +212,6 @@ GO
 - Facilidad de Recuperación: combinamos el último respaldo completo con los respaldos
 	diferenciales posteriores.
 */
-
 
 /*
 				======================================================
