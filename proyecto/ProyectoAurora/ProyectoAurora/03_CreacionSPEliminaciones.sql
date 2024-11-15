@@ -85,7 +85,7 @@ BEGIN
     -- Verificar si hay empleados asociados al cargo
     IF EXISTS (SELECT 1 FROM seguridad.EMPLEADO WHERE id_cargo = @id_cargo AND es_valido = 1)
     BEGIN
-        RAISERROR(130001, 16, 1);
+        RAISERROR(130002, 16, 1);
         RETURN;
     END
 
@@ -115,7 +115,7 @@ BEGIN
     IF EXISTS (SELECT 1 FROM seguridad.EMPLEADO WHERE id_sucursal = @id_sucursal AND es_valido = 1)
     BEGIN
         -- Lanzar un error si existen empleados en la sucursal
-        RAISERROR(130001, 16, 1);
+        RAISERROR(130002, 16, 1);
         RETURN;
     END
 
@@ -130,11 +130,12 @@ GO
 
 -- Store Procedure para eliminación física en TELEFONO (modificado)
 CREATE OR ALTER PROCEDURE borrado.EliminarTelefonoFisico
-    @id_sucursal INT
+    @id_sucursal INT,
+	@telefono CHAR (9)
 AS
 BEGIN
     -- Verificar si existe un teléfono asociado a la sucursal
-    IF NOT EXISTS (SELECT 1 FROM seguridad.TELEFONO WHERE id_sucursal = @id_sucursal)
+    IF NOT EXISTS (SELECT 1 FROM seguridad.TELEFONO WHERE id_sucursal = @id_sucursal AND telefono = @telefono )
     BEGIN
         -- Lanzar un error si no existe el teléfono
         RAISERROR(130001, 16, 1);
