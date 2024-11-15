@@ -207,9 +207,12 @@ CREATE OR ALTER PROCEDURE Test_CrearNotaCredito
 AS 
 BEGIN
 	SET NOCOUNT ON
-    DECLARE @FacturaID CHAR(11) = '101-17-6199';
+
+    DECLARE @FacturaID INT;
     DECLARE @MontoCredito DECIMAL(10, 2) = 100.00;
     DECLARE @EstadoFactura BIT;
+
+	SELECT TOP 1 @FacturaID = id_factura FROM transacciones.FACTURA
 
     -- Intenta crear la nota de crédito
     EXEC seguridad.CrearNotaCredito @FacturaID, @MontoCredito;
@@ -233,9 +236,12 @@ CREATE OR ALTER PROCEDURE Test_CrearNotaCreditoMontoNegativo
 AS 
 BEGIN
 	SET NOCOUNT ON;
-    DECLARE @FacturaID CHAR(11) = '101-17-6199';
+
+	DECLARE @FacturaID INT;
     DECLARE @MontoCredito DECIMAL(10, 2) = -100.00;
     DECLARE @EstadoFactura BIT;
+
+	SELECT TOP 1 @FacturaID = id_factura FROM transacciones.FACTURA
 
     -- Intenta crear la nota de crédito
     EXEC seguridad.CrearNotaCredito @FacturaID, @MontoCredito;
@@ -265,9 +271,11 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
-    DECLARE @FacturaID CHAR(11) = '101-17-6199';
+    DECLARE @FacturaID INT;
     DECLARE @MontoCredito DECIMAL(10, 2) = 50.00;
     DECLARE @Error NVARCHAR(255);
+
+	SELECT TOP 1 @FacturaID = id_factura FROM transacciones.FACTURA
 
     BEGIN TRY
         -- Impersona el rol de Cajero
@@ -299,6 +307,7 @@ BEGIN
 END;
 GO
 
+
 /*
  * ----------------------------
  * Prueba de CrearNotaCredito como Supervisor (Debe permitirlo)
@@ -309,9 +318,11 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
-    DECLARE @FacturaID CHAR(11) = '101-17-6199';
+    DECLARE @FacturaID INT;
     DECLARE @MontoCredito DECIMAL(10, 2) = 75.00;
     DECLARE @Error NVARCHAR(255);
+
+	SELECT TOP 1 @FacturaID = id_factura FROM transacciones.FACTURA
 
     BEGIN TRY
         -- Impersona el rol de Supervisor
