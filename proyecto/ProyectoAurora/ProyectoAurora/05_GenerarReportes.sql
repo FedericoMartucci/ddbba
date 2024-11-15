@@ -119,7 +119,7 @@ GO
 
 -- Ejemplo de uso
 EXEC reportes.GenerarInformeXMLFacturacionPorDiaSemana 
-    @rutaBase = 'C:\Users\PC\Desktop\ddbba\reportes', 
+    @rutaBase = 'C:\Users\User\Desktop\ddbba\reportes', 
     @nombreInforme = 'FacturacionPorDiaSemana', 
     @mes = 3, 
     @año = 2019;
@@ -162,7 +162,7 @@ BEGIN
         JOIN 
             productos.PRODUCTO p ON v.id_producto = p.id_producto
         JOIN 
-            seguridad.EMPLEADO e ON v.legajo = e.legajo
+            seguridad.EMPLEADO e ON v.id_empleado = e.id_empleado
         WHERE 
             YEAR(v.fecha) = @año
             AND MONTH(v.fecha) BETWEEN @mes_inicio AND @mes_fin
@@ -215,7 +215,7 @@ GO
 
 -- Ejemplo de uso
 EXEC reportes.GenerarInformeXMLFacturacionPorTurnoTrimestral 
-    @rutaBase = 'C:\Users\PC\Desktop\ddbba\reportes', 
+    @rutaBase = 'C:\Users\User\Desktop\ddbba\reportes', 
     @nombreInforme = 'FacturacionPorTurnoTrimestral', 
     @año = 2019, 
     @trimestre = 1;
@@ -307,7 +307,7 @@ GO
 
 -- Ejemplo de uso
 EXEC reportes.GenerarInformeXMLProductosVendidosPorRango 
-    @rutaBase = 'C:\Users\PC\Desktop\ddbba\reportes', 
+    @rutaBase = 'C:\Users\User\Desktop\ddbba\reportes', 
     @nombreInforme = 'ProductosVendidosPorRango',
     @fechaInicio = '2019-01-01', 
     @fechaFin = '2019-03-31';
@@ -400,7 +400,7 @@ GO
 
 -- Ejemplo de uso
 EXEC reportes.GenerarInformeXMLProductosVendidosPorSucursal 
-    @rutaBase = 'C:\Users\PC\Desktop\ddbba\reportes', 
+    @rutaBase = 'C:\Users\User\Desktop\ddbba\reportes', 
     @nombreInforme = 'ProductosVendidos', 
     @fechaInicio = '2019-01-01', 
     @fechaFin = '2019-03-31';
@@ -488,7 +488,7 @@ GO
 
 -- Ejemplo de uso
 EXEC reportes.GenerarInformeXMLTop5ProductosPorSemana 
-    @rutaBase = 'C:\Users\PC\Desktop\ddbba\reportes', 
+    @rutaBase = 'C:\Users\User\Desktop\ddbba\reportes', 
     @nombreInforme = 'Top5ProductosPorSemana',
     @mes = 3, 
     @año = 2019;
@@ -577,7 +577,7 @@ GO
 
 -- Ejemplo de uso
 EXEC reportes.GenerarInformeXMLProductosMenosVendidos 
-    @rutaBase = 'C:\Users\PC\Desktop\ddbba\reportes', 
+    @rutaBase = 'C:\Users\User\Desktop\ddbba\reportes', 
     @nombreInforme = 'ProductosMenosVendidos';
 GO
 
@@ -662,7 +662,7 @@ GO
 
 -- Ejemplo de uso
 EXEC reportes.GenerarInformeXMLVentasPorFechaSucursal 
-    @rutaBase = 'C:\Users\PC\Desktop\ddbba\reportes',
+    @rutaBase = 'C:\Users\User\Desktop\ddbba\reportes',
     @nombreInforme = 'VentasPorFechaSucursal',
     @fecha = '2019-03-10', 
     @idSucursal = 2;
