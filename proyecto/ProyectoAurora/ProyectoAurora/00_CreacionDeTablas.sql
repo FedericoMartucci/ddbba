@@ -228,7 +228,7 @@ IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'transacci
 BEGIN
     CREATE TABLE transacciones.NOTA_CREDITO (
         id INT IDENTITY(1, 1) CONSTRAINT PK_NOTA_CREDITO_ID PRIMARY KEY,        
-        monto DECIMAL (10, 2),
+        monto DECIMAL (10, 2) CHECK (monto > 0),
         id_factura INT,
         CONSTRAINT FK_ID_FACTURA FOREIGN KEY (id_factura) REFERENCES transacciones.FACTURA(id_factura)
         ON DELETE CASCADE
